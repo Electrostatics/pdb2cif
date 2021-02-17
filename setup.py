@@ -20,7 +20,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     package_data={"": ["tests/data/*"]},
     install_requires=["requests"],
-    tests_require=["pytest"],
+    tests_require=["pytest", "pandas"],
     # entry_points={"console_scripts": ["mvalue=osmolytes.main:console"]},
     keywords="science chemistry biophysics biochemistry",
     classifiers=[

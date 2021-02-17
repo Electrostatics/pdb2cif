@@ -1,6 +1,7 @@
 """Functions used by all tests."""
 import logging
 from pathlib import Path
+import pandas as pd
 from fetch import get_structure
 
 
@@ -9,28 +10,9 @@ REF_LINE = (
     "0        1         2         3         4         5         6         7         8\n"
     "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
 )
-PDB_DIR = Path("tests/data")
-TEST_LIST = {
-    "1FAS",
-    "3U7T",
-    "2HSY",
-    "2HXH",
-    "6PU4",
-    "7KLH",
-    "7KMK",
-    "7JK8",
-    "6XN9",
-    "7LB7",
-    "6ZHN",
-    "6VC1",
-    "3PDM",
-    "6VAR",
-    "4J7Z",
-    "1RMN",
-    "1SSZ",
-    "1VYC",
-    "4UN3", "1K1I", "1AFS", "1FAS", "5DV8", "5D8V", "1E7G"
-}
+DATA_DIR = Path("tests/data")
+TEST_CSV_PATH = DATA_DIR / Path("tests.csv")
+TEST_DATA = pd.read_csv(TEST_CSV_PATH, index_col="PDB_ID")
 
 
 def get_pdb(pdb_id):
@@ -39,9 +21,9 @@ def get_pdb(pdb_id):
     :param str pdb_id:  4-character PDB ID
     :returns:  file object ready for reading
     """
-    pdb_path = PDB_DIR / f"{pdb_id.lower()}.pdb"
+    pdb_path = DATA_DIR / f"{pdb_id.lower()}.pdb"
     if not pdb_path.exists():
-        _LOGGER.error(f"Fetching {pdb_id} remotely.")
+        _LOGGER.warning(f"Fetching {pdb_id} remotely.")
         return get_structure(pdb_id, "PDB")
     else:
         return open(pdb_path, "rt", encoding="utf8")
