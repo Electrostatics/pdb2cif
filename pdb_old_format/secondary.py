@@ -5,7 +5,7 @@
 .. codeauthor::  Nathan Baker
 """
 import logging
-from .general import BaseRecord
+from .general import BaseRecord, atom_format
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -85,7 +85,7 @@ class CisPeptide(BaseRecord):
             f" {self.seq_num1:4}{self.icode1:1}   {self.pep2:3}"
             f" {self.chain_id2:1} {self.seq_num2:4}{self.icode2:1}"
             f"       {self.mod_num:3}       {self.measure:6.2f}"
-        ).strip()
+        )
 
 
 class DisulfideBond(BaseRecord):
@@ -162,7 +162,7 @@ class DisulfideBond(BaseRecord):
             f"{self.icode1:1}   CYS {self.chain_id2:1} {self.seq_num2:4}"
             f"{self.icode2:1}                         {self.sym1:6}"
             f" {self.sym2:6}{self.length:4.2f}"
-        ).strip()
+        )
 
 
 class Helix(BaseRecord):
@@ -267,7 +267,7 @@ class Helix(BaseRecord):
             f" {self.end_res_name:3} {self.end_chain_id:1}"
             f" {self.end_seq_num:4}{self.end_i_code:1}{self.helix_class:2}"
             f"{self.comment:30} {self.length:5}"
-        ).strip()
+        )
 
 
 class Link(BaseRecord):
@@ -355,43 +355,41 @@ class Link(BaseRecord):
         self.sym1 = line[59:65].strip()
         self.sym2 = line[66:72].strip()
         self.length = line[73:78]
+        self.is_element1 = None
+        self.is_element2 = None
 
     def __str__(self):
-        string = "LINK        "
-        if self.name1 in ["MG"]:
-            string += f"{self.name1}  "
-        elif len(self.name1) == 1:
-            string += f" {self.name1}  "
+        # See atom-name formatting rules at 
+        # https://www.cgl.ucsf.edu/chimera/docs/UsersGuide/tutorials/pdbintro.html
+        if None in [self.is_element1, self.is_element2]:
+            err = (
+                "Must run annotate_link first before correctly formatted "
+                "strings can be produced."
+            )
+            raise ValueError(err)
+        if self.is_element1:
+            name1 = f"{self.name1:>2}  "[:4]
         elif len(self.name1) == 2:
-            string += f" {self.name1} "
-        elif len(self.name1) == 3:
-            string += f" {self.name1}"
+            name1 = f" {self.name1} "
         else:
-            string += f"{self.name1}"
+            name1 = f"{self.name1:>4}"
+        if self.is_element2:
+            name2 = f"{self.name2:>2}  "[:4]
+        elif len(self.name2) == 2:
+            name2 = f" {self.name2} "
+        else:
+            name2 = f"{self.name2:>4}"
+        string = f"LINK        "
         string += (
-            f"{self.alt_loc1:1}{self.res_name1:>3} {self.chain_id1:1}"
+            f"{name1}{self.alt_loc1:1}{self.res_name1:>3} {self.chain_id1:1}"
             f"{self.res_seq1:4}{self.ins_code1:1}               "
         )
-        if self.name2 in ["MG", "CA"]:
-            string += f"{self.name2}  "
-        elif len(self.name2) == 1:
-            string += f" {self.name2}  "
-        elif len(self.name2) == 2:
-            string += f" {self.name2} "
-        elif len(self.name2) == 3:
-            string += f" {self.name2}"
-        else:
-            string += f"{self.name2:>4}"
-        string += f"{self.alt_loc2:1}"
-        if len(self.res_name2) == 2:
-            string += f"{self.res_name2:>3}"
-        else:
-            string += f"{self.res_name2:>3}"
         string += (
-            f" {self.chain_id2}{self.res_seq2:4}{self.ins_code2:1}"
-            f"  {self.sym1:>6} {self.sym2:>6} {self.length:5}"
+            f"{name2}{self.alt_loc2:1}{self.res_name2:>3} {self.chain_id2}"
+            f"{self.res_seq2:4}{self.ins_code2:1}  {self.sym1:>6} "
+            f"{self.sym2:>6} {self.length:5}"
         )
-        return string.strip()
+        return string
 
 
 class Sheet(BaseRecord):
@@ -523,7 +521,7 @@ class Sheet(BaseRecord):
             try:
                 self.curr_res_seq = int(line[50:54].strip())
             except ValueError:
-                self.curr_res_seq = None
+                self.curr_res_seq = ""
             self.curr_ins_code = line[54].strip()
             self.prev_atom = line[56:60].strip()
             self.prev_res_name = line[60:63].strip()
@@ -531,7 +529,7 @@ class Sheet(BaseRecord):
             try:
                 self.prev_res_seq = int(line[65:69].strip())
             except ValueError:
-                self.prev_res_seq = None
+                self.prev_res_seq = ""
             self.prev_ins_code = line[69].strip()
         except IndexError:
             pass
@@ -548,10 +546,10 @@ class Sheet(BaseRecord):
             string += f"  {self.cur_atom:3}"
         else:
             string += f" {self.cur_atom:4}"
-        string += (
-            f"{self.curr_res_name:3} {self.curr_chain_id:1}"
-            f"{self.curr_res_seq:4}{self.curr_ins_code:1}"
-        )
+        string += f"{self.curr_res_name:3} "
+        string += f"{self.curr_chain_id:1}"
+        string += f"{self.curr_res_seq:4}"
+        string += f"{self.curr_ins_code:1}"
         if len(self.prev_atom) == 1:
             string += f"  {self.prev_atom:3}"
         else:
@@ -560,4 +558,4 @@ class Sheet(BaseRecord):
             f"{self.prev_res_name:3} {self.prev_chain_id:1}"
             f"{self.prev_res_seq:4}{self.prev_ins_code:1}"
         )
-        return string.strip()
+        return string

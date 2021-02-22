@@ -61,7 +61,7 @@ class FractionalTransform(BaseRecord):
         return (
             f"SCALE{self.n}    {self.sn1:10.6f}{self.sn2:10.6f}"
             f"{self.sn3:10.6f}     {self.unif:10.5f}"
-        ).strip()
+        )
 
 
 class OriginalTransform(BaseRecord):
@@ -113,7 +113,8 @@ class OriginalTransform(BaseRecord):
         return (
             f"ORIGX{self.n:1}    {self.on1:10.6f}{self.on2:10.6f}"
             f"{self.on3:10.6f}     {self.tn:10.5f}"
-        ).strip()
+        )
+
 
 class NoncrystalTransform(BaseRecord):
     """MTRIXn baseclass
@@ -179,7 +180,7 @@ class NoncrystalTransform(BaseRecord):
         return (
             f"MTRIX{self.n:1} {self.serial:3}{self.mn1:10.6f}{self.mn2:10.6f}"
             f"{self.mn3:10.6f}     {self.vecn:10.5f}    {self.i_given:1}"
-        ).strip()
+        )
 
 
 class UnitCell(BaseRecord):
@@ -246,4 +247,4 @@ class UnitCell(BaseRecord):
             f"CRYST1{self.a:9.3f}{self.b:9.3f}{self.c:9.3f}{self.alpha:7.2f}"
             f"{self.beta:7.2f}{self.gamma:7.2f} {self.space_group:11}"
             f"{self.z:4}"
-        ).strip()
+        )

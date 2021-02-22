@@ -75,7 +75,7 @@ class Heterogen(BaseRecord):
         return (
             f"HET    {self.hetatm_id:>3}  {self.chain_id:1}{self.seq_num:4}"
             f"{self.ins_code:1}  {self.num_het_atoms:5}     {self.text:40}"
-        ).strip()
+        )
 
 
 class HeterogenName(BaseRecord):
@@ -110,21 +110,23 @@ class HeterogenName(BaseRecord):
         """
         super().parse_line(line)
         hetatm_id = line[11:14].strip()
-        if hetatm_id not in self.heterogens:
-            self.heterogens[hetatm_id] = []
-        self.heterogens[hetatm_id].append(line[15:70].strip())
+        string = line[15:70].strip()
+        strings = self.heterogens.get(hetatm_id, [])
+        strings.append(string)
+        self.heterogens[hetatm_id] = strings
 
     def __str__(self):
         strings = []
         for hetatm, lines in self.heterogens.items():
-            string = "HETNAM  "
             for iline, line in enumerate(lines):
                 continuation = iline + 1
                 if continuation > 1:
-                    string += f"{continuation:>2} {hetatm:>3} {line:55}"
+                    string = (
+                        f"HETNAM  {continuation:>2} {hetatm:>3}  {line:54}"
+                    )
                 else:
-                    string += f"   {hetatm:3} {line:55}"
-            strings.append(string)
+                    string = f"HETNAM     {hetatm:>3} {line:55}"
+                strings.append(string)
         return "\n".join(strings)
 
 
@@ -152,12 +154,26 @@ class HeterogenSynonym(BaseRecord):
 
     def __init__(self):
         super().__init__()
+        self.synonyms = OrderedDict()
 
     def parse_line(self, line):
         super().parse_line(line)
+        het_id = line[11:14].strip()
+        synonyms = self.synonyms.get(het_id, [])
+        synonyms.append(line[15:70].strip())
+        self.synonyms[het_id] = synonyms
 
     def __str__(self):
-        return super().__str__()
+        lines = []
+        for het_id, synonyms in self.synonyms.items():
+            for isyn, syn in enumerate(synonyms):
+                continuation = isyn + 1
+                if continuation > 1:
+                    line = f"HETSYN  {continuation:>2} {het_id:3}  {syn:54}"
+                else:
+                    line = f"HETSYN     {het_id:3} {syn:55}"
+                lines.append(line)
+        return "\n".join(lines)
 
 
 class Formula(BaseRecord):
@@ -202,10 +218,10 @@ class Formula(BaseRecord):
 
     def __str__(self):
         strings = []
-        for component_num, component_tup in self.components.items():
-            hetatm_id, text = component_tup
-            string = (
-                f"FORMUL  {component_num:2}  {hetatm_id:>3}{text:52}"
-            ).strip()
-            strings.append(string)
+        for component_num, component_list in self.components.items():
+            for hetatm_id, text in component_list:
+                string = (
+                    f"FORMUL  {component_num:>2}  {hetatm_id:>3}   {text:52}"
+                ).strip()
+                strings.append(string)
         return "\n".join(strings)

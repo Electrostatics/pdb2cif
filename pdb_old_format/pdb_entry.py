@@ -32,10 +32,10 @@ class Entry:
         self.source = None
         self.keywords = None
         self.experimental_data = None
-        self.num_models = 1
+        self.num_models = None
         self.model_type = None
         self.author = None
-        self.revision_data = []
+        self.revision_data = None
         self.supersedes = None
         self.journal = []
         self.remark = []
@@ -49,7 +49,7 @@ class Entry:
         self.heterogen_name = None
         self.heterogen_synonyms = None
         self.heterogen_formula = None
-        # Secondary sequence section
+        # Secondary structure section
         self.helix = []
         self.sheet = []
         # Connectivity annotation section
@@ -69,7 +69,154 @@ class Entry:
         self.connect = []
         # Bookeeping section
         self.master = None
-        self.end = None
+
+    def find_residue(self, chain_id, residue_id, model_num=1) -> list:
+        """Find a specific residue.
+
+        :param str chain_id:  chain ID to find
+        :param int residue_id: residue ID to find
+        :param int model_num:  model number to use
+        :returns:  list of :class:`coordinates.Atom`-like objects
+        """
+        model = self.model[model_num - 1]
+        atoms = []
+        for atom in model.all_atoms:
+            if (atom.chain_id == chain_id) and (atom.res_seq == residue_id):
+                atoms.append(atom)
+        if len(atoms) == 0:
+            _LOGGER.warning(
+                f"Unable to find residue {residue_id} in chain {chain_id} of "
+                f"model {model_num}."
+            )
+        return atoms
+
+    def find_atom_by_name(
+        self, chain_id, residue_id, atom_name, model_num=1
+    ) -> coordinates.Atom:
+        """Find a specific atom by name.
+
+        :param str chain_id:  chain ID to find
+        :param int residue_id: residue ID to find
+        :param str atom_name:  name of atom to find
+        :param int model_num:  model number to use
+        :returns:  ATOM or HETATM object
+        """
+        atoms = self.find_residue(chain_id, residue_id, model_num)
+        for atom in atoms:
+            if atom.name == atom_name:
+                return atom
+
+    def annotate_link(self, record) -> secondary.Link:
+        """Annotate LINK to indicate whether the named atoms are elements.
+
+        Creates two new Boolean attributes in record:  is_element1 and
+        is_element2.
+
+        :param secondary.Link record:  record to annotate
+        :returns:  annotated record
+        """
+        atom1 = self.find_atom_by_name(
+            record.chain_id1, record.res_seq1, record.name1
+        )
+        try:
+            record.is_element1 = atom1.name[:2] == atom1.element[:2]
+        except AttributeError as exc:
+            err = (
+                f"Unable to find atom {record.name1} in residue "
+                f"{record.res_seq1} in chain {record.chain_id1}."
+            )
+            raise AttributeError(err) from exc
+        atom2 = self.find_atom_by_name(
+            record.chain_id2, record.res_seq2, record.name2
+        )
+        record.is_element2 = atom2.name[:2] == atom2.element[:2]
+        return record
+
+    def __str__(self):
+        strings = []
+        # Title section
+        for record in (
+            [
+                self.header,
+                self.obsolete,
+                self.title,
+                self.split,
+                self.caveat,
+                self.compound,
+                self.source,
+                self.keywords,
+                self.experimental_data,
+                self.num_models,
+                self.model_type,
+                self.author,
+            ]
+            + [self.revision_data]
+            + [self.supersedes]
+            + self.journal
+            + self.remark
+        ):
+            if record is not None:
+                strings.append(str(record))
+        # Primary structure section
+        for record in (
+            self.database_reference
+            + self.sequence_differences
+            + [self.sequence_residues]
+            + self.modified_residues
+        ):
+            if record is not None:
+                strings.append(str(record))
+        # Heterogen section
+        for record in self.heterogen + [
+            self.heterogen_name,
+            self.heterogen_synonyms,
+            self.heterogen_formula,
+        ]:
+            if record is not None:
+                strings.append(str(record))
+        # Secondary structure section
+        for record in self.helix + self.sheet:
+            if record is not None:
+                strings.append(str(record))
+        # Connectivity annotation section
+        for record in self.disulfide_bond:
+            if record is not None:
+                strings.append(str(record))
+        for record in self.link:
+            record = self.annotate_link(record)
+            if record is not None:
+                strings.append(str(record))
+        for record in self.cis_peptide:
+            if record is not None:
+                strings.append(str(record))
+        # Miscellaneous section
+        for record in self.site:
+            if record is not None:
+                strings.append(str(record))
+        # Crystallographic and coordinate transformation section
+        for record in (
+            [self.unit_cell]
+            + self.orig_transform
+            + self.frac_transform
+            + self.noncrystal_transform
+        ):
+            if record is not None:
+                strings.append(str(record))
+        # Coordinate section
+        for record in self.model:
+            if record is not None:
+                strings.append(str(record))
+                if len(self.model) > 1:
+                    strings.append("ENDMDL")
+        # Connectivity section
+        for record in self.connect:
+            if record is not None:
+                strings.append(str(record))
+        # Bookkeeping section
+        if self.master is not None:
+            strings.append(str(self.master))
+        strings.append("END   ")
+        return "\n".join(strings)
 
     def parse_file(self, file_):
         """Parse a PDB file.
@@ -128,10 +275,11 @@ class Entry:
                 self.experimental_data = annotation.ExperimentalData()
             self.experimental_data.parse_line(line)
         elif name == "NUMMDL":
-            if self.num_models > 1:
+            if self.num_models is not None:
                 err = f"NUMMDL already exists:\n{self.num_models}"
                 raise ValueError(err)
-            self.num_models = int(line[10:14])
+            self.num_models = annotation.NumModels()
+            self.num_models.parse_line(line)
         elif name == "MDLTYP":
             if not self.model_type:
                 self.model_type = annotation.ModelType()
@@ -141,9 +289,9 @@ class Entry:
                 self.author = annotation.Author()
             self.author.parse_line(line)
         elif name == "REVDAT":
-            revdat = annotation.RevisionData()
-            revdat.parse_line(line)
-            self.revision_data.append(revdat)
+            if not self.revision_data:
+                self.revision_data = annotation.RevisionData()
+            self.revision_data.parse_line(line)
         elif name == "SPRSDE":
             if not self.supersedes:
                 self.supersedes = annotation.Supersedes()
@@ -278,7 +426,8 @@ class Entry:
         :returns:  number of ORGIXn + SCALEn + MTRIXn
         """
         return (
-            len(self.orig_transform) + len(self.frac_transform)
+            len(self.orig_transform)
+            + len(self.frac_transform)
             + len(self.noncrystal_transform)
         )
 
@@ -304,9 +453,7 @@ class Entry:
         """Number of TER records in entry."""
         num = 0
         for model in self.model:
-            for chain in model.chain.values():
-                if chain.terminus is not None:
-                    num += 1
+            num += model.num_ter()
         return num
 
     def check_master(self):
@@ -316,7 +463,13 @@ class Entry:
         """
         master = self.master
         for field, expected, test in [
-            ("model", self.num_models, len(self.model)),
+            (
+                "model",
+                self.num_models.model_number
+                if self.num_models is not None
+                else 1,
+                len(self.model),
+            ),
             ("REMARK", master.num_remark, len(self.remark)),
             ("HETATM", master.num_het, len(self.heterogen)),
             ("HELIX", master.num_helix, len(self.helix)),
@@ -330,9 +483,8 @@ class Entry:
             test_str = (
                 f"MASTER indicates {expected} {field} records; found {test}."
             )
-            _LOGGER.debug(test_str)
             try:
-                assert(expected == test)
+                assert expected == test
             except AssertionError:
                 err = (
                     f"{test_str}"

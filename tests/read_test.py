@@ -18,8 +18,11 @@ def test_pdb(pdb_id):
     entry.check_master()
 
     test_row = TEST_DATA.loc[pdb_id, :]
-    assert(entry.num_atoms() == test_row["Num_heavy_atoms"])
-    assert(entry.num_residues() == test_row["Num_residues"])
-    assert(entry.num_chains() == test_row["Num_chains"])
-    assert(entry.num_models == test_row["Num_models"])
-    assert(len(entry.model) == test_row["Num_models"])
+    assert entry.num_atoms() == test_row["Num_heavy_atoms"]
+    assert entry.num_residues() == test_row["Num_residues"]
+    assert entry.num_chains() == test_row["Num_chains"]
+    if entry.num_models:
+        assert entry.num_models.model_number == test_row["Num_models"]
+    else:
+        assert test_row["Num_models"] == 1
+    assert len(entry.model) == test_row["Num_models"]

@@ -93,7 +93,7 @@ class DatabaseReference(BaseRecord):
         self.ins_end = line[24].strip()
         self.database = line[26:32].strip()
         self.database_accession = line[33:41].strip()
-        self.database_id_code = line[32:54].strip()
+        self.database_id_code = line[42:54].strip()
         self.database_seq_begin = int(line[55:60])
         self.database_ins_begin = line[60].strip()
         self.database_seq_end = int(line[62:67])
@@ -101,13 +101,13 @@ class DatabaseReference(BaseRecord):
 
     def __str__(self):
         return (
-            f"DBREF  {self.id_code:4} {self.chain_id:1} {self.seq_begin:4}"
-            f"{self.ins_begin:1} {self.seq_end:4}{self.ins_end:1} "
+            f"DBREF  {self.id_code:4} {self.chain_id:1} {self.seq_begin:>4}"
+            f"{self.ins_begin:1} {self.seq_end:>4}{self.ins_end:1} "
             f"{self.database:6} {self.database_accession:8} "
             f"{self.database_id_code:12} {self.database_seq_begin:>5}"
-            f"{self.database_ins_begin:1} {self.database_seq_end:4}"
+            f"{self.database_ins_begin:1} {self.database_seq_end:>5}"
             f"{self.database_ins_end:1}"
-        ).strip()
+        )
 
 
 class DatabaseReference1(BaseRecord):
@@ -180,7 +180,7 @@ class DatabaseReference1(BaseRecord):
             f"DBREF1 {self.id_code:4} {self.chain_id:1} {self.seq_begin:4}"
             f"{self.ins_begin:1} {self.seq_end:4}{self.ins_end:1}"
             f" {self.database:6}               {self.db_ins_code:20}"
-        ).strip()
+        )
 
 
 class DatabaseReference2(BaseRecord):
@@ -239,7 +239,7 @@ class DatabaseReference2(BaseRecord):
             f"DBREF2 {self.id_code:4} {self.chain_id:1}"
             f"     {self.db_accession:22}     {self.seq_begin:10}"
             f"  {self.seq_end:10}"
-        ).strip()
+        )
 
 
 class ModifiedResidue(BaseRecord):
@@ -301,7 +301,7 @@ class ModifiedResidue(BaseRecord):
             f"MODRES {self.id_code:4} {self.residue_name:3} {self.chain_id:1}"
             f" {self.sequence_num:4}{self.ins_code:1} "
             f"{self.standard_res:3}  {self.comment:41}"
-        ).strip()
+        )
 
 
 class SequenceDifferences(BaseRecord):
@@ -387,7 +387,7 @@ class SequenceDifferences(BaseRecord):
             f" {self.seq_num:4}{self.ins_code:1} {self.database:4}"
             f" {self.db_id_code:9} {self.db_res:3} {self.db_seq:5}"
             f" {self.conflict:21}"
-        ).strip()
+        )
 
 
 class SequenceResidues(BaseRecord):
@@ -446,6 +446,7 @@ class SequenceResidues(BaseRecord):
     def __init__(self):
         super().__init__()
         self.residues = OrderedDict()
+        self.num_residues = {}
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -456,6 +457,7 @@ class SequenceResidues(BaseRecord):
         chain_id = line[11].strip()
         if chain_id not in self.residues:
             self.residues[chain_id] = []
+        self.num_residues [chain_id]= int(line[13:17])
         start = 19
         end = 22
         while True:
@@ -469,21 +471,14 @@ class SequenceResidues(BaseRecord):
         """Number of chains in sequence."""
         return len(self.residues)
 
-    def num_residues(self) -> int:
-        """Number of residues (in all chains) in sequence."""
-        num_res = 0
-        for residues in self.residues.values():
-            num_res += len(residues)
-        return num_res
-
     def __str__(self):
         strings = []
         for chain_id, residues in self.residues.items():
             for ichunk, chunk in enumerate(grouper(residues, 13)):
                 serial_num = ichunk + 1
-                string = f"SEQRES {serial_num:>2} {chain_id:1} "
-                string += f"{len(residues)} "
+                string = f"SEQRES {serial_num:>3} {chain_id:1} "
+                string += f"{self.num_residues[chain_id]:>4} "
                 for residue in chunk:
-                    string += f"  {residue:3}"
+                    string += f" {residue:>3}"
                 strings.append(string.strip())
         return "\n".join(strings)

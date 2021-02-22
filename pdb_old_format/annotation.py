@@ -44,14 +44,14 @@ class Author(BaseRecord):
         self.author_list.append(line[10:79].strip())
 
     def __str__(self):
-        string = ""
+        strings = []
         for iline, line in enumerate(self.author_list):
             continuation = iline + 1
             if continuation > 1:
-                string += f"\nAUTHOR  {continuation:>2} {line:78}"
+                strings += [f"AUTHOR  {continuation:>2} {line:78}"]
             else:
-                string += f"AUTHOR    {line:79}"
-        return string.strip()
+                strings += [f"AUTHOR    {line:79}"]
+        return "\n".join(strings)
 
 
 class Caveat(BaseRecord):
@@ -90,15 +90,14 @@ class Caveat(BaseRecord):
         self.comment.append(line[19:70].strip())
 
     def __str__(self):
-        string = ""
+        strings = []
         for iline, line in enumerate(self.comment):
             continuation = iline + 1
             if continuation > 1:
-                string += f"\nCAVEAT  {continuation:>2} "
+                strings += [f"CAVEAT  {continuation:>2}     {line:51}"]
             else:
-                string += "CAVEAT    "
-            string += f"    {line:51}"
-        return string.strip()
+                strings += ["CAVEAT        {line:51}"]
+        return "\n".join(strings)
 
 
 class Compound(BaseRecord):
@@ -141,15 +140,14 @@ class Compound(BaseRecord):
         self.compound.append(line[10:80].strip())
 
     def __str__(self):
-        string = ""
+        strings = []
         for iline, line in enumerate(self.compound):
             continuation = iline + 1
-            string = f"COMPND {continuation:>3}"
             if continuation > 1:
-                string += f" {line:69}"
+                strings += [f"COMPND {continuation:>3} {line:69}"]
             else:
-                string += f"{line:70}"
-        return string.strip()
+                strings += [f"COMPND    {line:70}"]
+        return "\n".join(strings)
 
 
 class ExperimentalData(BaseRecord):
@@ -192,18 +190,17 @@ class ExperimentalData(BaseRecord):
         :param str line:  line to parse
         """
         super().parse_line(line)
-        self.continuation = line[8:10].strip()
-        self.technique = line[10:70].strip()
+        self.technique.append(line[10:79].strip())
 
     def __str__(self):
-        string = ""
+        strings = []
         for iline, line in enumerate(self.technique):
             continuation = iline + 1
             if continuation > 1:
-                string += f"\nEXPDTA {continuation:>2} {line:79}"
+                strings += [f"EXPDTA {continuation:>2} {line:79}"]
             else:
-                string += f"EXPDATA   {line:79}"
-        return string.strip()
+                strings += [f"EXPDTA    {line:79}"]
+        return "\n".join(strings)
 
 
 class Header(BaseRecord):
@@ -283,8 +280,7 @@ class Journal(BaseRecord):
         self.text = line[12:79].strip()
 
     def __str__(self):
-        string = f"JRNL        {self.text:67}"
-        return string.strip()
+        return f"JRNL        {self.text:67}"
 
 
 class Keywords(BaseRecord):
@@ -323,14 +319,14 @@ class Keywords(BaseRecord):
         self.keywords.append(line[10:80].strip())
 
     def __str__(self):
-        string = ""
+        strings = []
         for iline, line in enumerate(self.keywords):
             continuation = iline + 1
             if continuation > 1:
-                string += f"\nKEYWDS  {continuation:>2} {line:79}"
+                strings += [f"KEYWDS  {continuation:>2} {line:79}"]
             else:
-                string += f"KEYWDS    {line:79}"
-        return string.strip()
+                strings += [f"KEYWDS    {line:79}"]
+        return "\n".join(strings)
 
 
 class ModelType(BaseRecord):
@@ -365,14 +361,14 @@ class ModelType(BaseRecord):
         self.comment.append(line[10:80].strip())
 
     def __str__(self):
-        string = ""
+        strings = []
         for iline, line in enumerate(self.comment):
             continuation = iline + 1
             if continuation > 1:
-                string += f"\nMDLTYPE  {continuation:>2} {line:79}"
+                strings += [f"MDLTYP  {continuation:>2} {line:79}"]
             else:
-                string += f"MDLTYPE    {line:80}"
-        return string.strip()
+                strings += [f"MDLTYP    {line:80}"]
+        return "\n".join(strings)
 
 
 class Obsolete(BaseRecord):
@@ -454,23 +450,24 @@ class Obsolete(BaseRecord):
                 break
 
     def __str__(self):
+        strings = []
         err = f"This PDB is obsolete. Use one of the following instead:"
         err += f"{self.replace_id_codes}"
         _LOGGER.error(err)
-        string = ""
         for ichunk, chunk in enumerate(grouper(self.replace_id_codes, 8)):
             continuation = ichunk + 1
             if continuation > 1:
-                string += f"\nOBSLTE  {continuation:>2}"
+                string = f"OBSLTE  {continuation:>2}"
             else:
-                string += "OBSLTE    "
+                string = "OBSLTE    "
             string += (
                 f" {date_format(self.replace_date):9} {self.id_code}       "
             )
             for code in chunk:
                 if code is not None:
                     string += f" {code:4}"
-        return string.strip()
+            strings.append(string)
+        return "\n".join(strings)
 
 
 class Remark(BaseRecord):
@@ -512,31 +509,90 @@ class Remark(BaseRecord):
         self.remark_text = line[11:79]
 
     def __str__(self):
-        string = f"REMARK {self.remark_num:3}"
-        string += f" {self.remark_text:68}"
-        return string.strip()
+        return f"REMARK {self.remark_num:3} {self.remark_text:68}"
 
 
-class Revision:
-    """Class to store contents of multiple REVDAT entries."""
+class Revision(BaseRecord):
+    """Class to store contents of a single REVDAT modification.
+
+    +---------+--------------+--------------+---------------------------------+
+    | COLUMNS | DATA TYPE    | FIELD        | DEFINITION                      |
+    +=========+==============+==============+=================================+
+    | 1-6     | Record name  | "REVDAT"     |                                 |
+    +---------+--------------+--------------+---------------------------------+
+    | 8-10    | Integer      | modNum       | Modification number.            |
+    +---------+--------------+--------------+---------------------------------+
+    | 11-12   | Continuation | continuation | Allows concatenation of         |
+    |         |              |              | multiple records.               |
+    +---------+--------------+--------------+---------------------------------+
+    | 14-22   | Date         | modDate      | Date of modification (or        |
+    |         |              |              | for new entries) in DD-MMM-YY   |
+    |         |              |              | format. This is not repeated on |
+    |         |              |              | continued lines.                |
+    +---------+--------------+--------------+---------------------------------+
+    | 24-27   | IDCode       | modId        | ID code of this entry. This is  |
+    |         |              |              | not repeated on continuation    |
+    |         |              |              | lines.                          |
+    +---------+--------------+--------------+---------------------------------+
+    | 32      | Integer      | modType      | An integer identifying the type |
+    |         |              |              | of modification. For all        |
+    |         |              |              | revisions, the modification     |
+    |         |              |              | type is listed as 1             |
+    +---------+--------------+--------------+---------------------------------+
+    | 40-45   | LString(6)   | record       | Modification detail.            |
+    +---------+--------------+--------------+---------------------------------+
+    | 47-52   | LString(6)   | record       | Modification detail.            |
+    +---------+--------------+--------------+---------------------------------+
+    | 54-59   | LString(6)   | record       | Modification detail.            |
+    +---------+--------------+--------------+---------------------------------+
+    | 61-66   | LString(6)   | record       | Modification detail.            |
+    +---------+--------------+--------------+---------------------------------+
+    """
 
     def __init__(self):
-        self.modification_num = None
+        super().__init__()
+        self.modification_num = ""
         self.modification_date = None
-        self.modification_id = None
-        self.modification_type = None
+        self.modification_id = ""
+        self.modification_type = ""
         self.records = []
 
+    def parse_line(self, line):
+        """Parse PDB-format line for specific revision.
+
+        :param str line:  line to parse.
+        """
+        super().parse_line(line)
+        self.modification_num = int(line[7:10].strip())
+        try:
+            self.modification_date = date_parse(line[13:22].strip())
+        except ValueError:
+            pass
+        mod_id = line[23:28].strip()
+        if mod_id:
+            self.modification_id = mod_id
+        mod_type = line[31].strip()
+        if mod_type:
+            self.modification_type = int(mod_type)
+        for start, end in [(39, 45), (46, 52), (53, 59), (60, 66)]:
+            record = line[start:end].strip()
+            if record:
+                self.records.append(record)
+
     def __str__(self):
+        if len(self.records) == 0:
+            return (
+                f"REVDAT {self.modification_num:>3}"
+                f"   {date_format(self.modification_date):9} "
+                f"{self.modification_id:4}    {self.modification_type:1}"
+                f"      "
+            )
         strings = []
-        for ichunk, chunk in grouper(self.records, 4):
+        for ichunk, chunk in enumerate(grouper(self.records, 4)):
             continuation = ichunk + 1
-            string = f"REVDAT {self.modification_num}"
+            string = f"REVDAT {self.modification_num:>3}"
             if continuation > 1:
-                string += (
-                    f"{continuation:>2}               "
-                    f"{self.modification_type:1}      "
-                )
+                string += f"{continuation:>2}                          "
             else:
                 string += (
                     f"   {date_format(self.modification_date):9} "
@@ -544,7 +600,8 @@ class Revision:
                     f"      "
                 )
             for record in chunk:
-                string += f" {record:6}"
+                if record is not None:
+                    string += f" {record:6}"
             strings.append(string.strip())
         return "\n".join(strings)
 
@@ -601,27 +658,22 @@ class RevisionData(BaseRecord):
         super().parse_line(line)
         mod_num = int(line[7:10].strip())
         revision = self.revisions.get(mod_num, Revision())
-        revision.modification_num = mod_num
-        try:
-            revision.modification_date = date_parse(line[13:22].strip())
-        except ValueError:
-            pass
-        mod_id = line[23:28].strip()
-        if mod_id:
-            revision.modification_id = mod_id
-        mod_type = line[31].strip()
-        if mod_type:
-            revision.modification_type = int(mod_type)
-        for start, end in [(39, 45), (46, 52), (53, 59), (60, 66)]:
-            record = line[start:end].strip()
-            if record:
-                revision.records.append(record)
+        revision.parse_line(line)
         self.revisions[mod_num] = revision
 
     def __str__(self):
         strings = []
-        for revision in self.revisions.values():
-            strings.append(revision.__str__())
+        curr_mod = None
+        continuation = 1
+        for mod_num, revision in self.revisions.items():
+            string = str(revision)
+            if mod_num == curr_mod:
+                continuation += 1
+                string = string[:11] + f"{continuation:>2}" + string[12:]
+            else:
+                continuation = 1
+                curr_mod = mod_num
+            strings.append(string)
         return "\n".join(strings)
 
 
@@ -761,7 +813,37 @@ class Site(BaseRecord):
             f" {self.chain_id3:1}{self.seq3:4}{self.ins_code3:1}"
             f" {self.res_name4:>3} {self.chain_id4:1}{self.seq4:4}"
             f"{self.ins_code4:1}"
-        ).strip()
+        )
+
+
+class NumModels(BaseRecord):
+    """NUMMDL field
+
+    The NUMMDL record indicates total number of models in a PDB entry.
+
+    +---------+-------------+-------------+-----------------------------------+
+    | COLUMNS | DATA TYPE   | FIELD       | DEFINITION                        |
+    +=========+=============+=============+===================================+
+    | 1-6     | Record name | "NUMMDL"    |                                   |
+    +---------+-------------+-------------+-----------------------------------+
+    | 11-14   | Integer     | modelNumber | Number of models.                 |
+    +---------+-------------+-------------+-----------------------------------+
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.model_number = None
+
+    def parse_line(self, line):
+        """Parse PDB-format line.
+
+        :param str line:  line to parse
+        """
+        super().parse_line(line)
+        self.model_number = int(line[10:14])
+
+    def __str__(self):
+        return f"NUMMDL    {self.model_number:<4}"
 
 
 class Source(BaseRecord):
@@ -801,14 +883,14 @@ class Source(BaseRecord):
         self.source.append(line[10:79].strip())
 
     def __str__(self):
-        string = ""
+        strings = []
         for iline, line in enumerate(self.source):
             continuation = iline + 1
             if continuation > 1:
-                string += f"\nSOURCE {continuation:>3} {line:79}"
+                strings += [f"SOURCE {continuation:>3} {line:79}"]
             else:
-                string += f"SOURCE    {line:79}"
-        return string.strip()
+                strings += [f"SOURCE    {line:79}"]
+        return "\n".join(strings)
 
 
 class Split(BaseRecord):
@@ -877,8 +959,9 @@ class Split(BaseRecord):
                 break
 
     def __str__(self):
-        string = ""
+        strings = []
         for ichunk, chunk in grouper(self.id_codes, 14):
+            string = ""
             continuation = ichunk + 1
             if continuation > 1:
                 string += f"\nSITE    {continuation:>2}"
@@ -887,7 +970,8 @@ class Split(BaseRecord):
             for code in chunk:
                 if code is not None:
                     string += f" {code:4}"
-        return string.strip()
+            strings += [string]
+        return "\n".join(strings)
 
 
 class Supersedes(BaseRecord):
@@ -1005,11 +1089,11 @@ class Title(BaseRecord):
         self.title.append(line[10:80].strip())
 
     def __str__(self):
-        string = ""
+        strings = []
         for iline, line in enumerate(self.title):
             continuation = iline + 1
             if continuation > 1:
-                string += f"\nTITLE   {continuation:>2} {line:69}"
+                strings += [f"TITLE   {continuation:>2} {line:69}"]
             else:
-                string += f"TITLE     {line:70}"
-        return string.strip()
+                strings += [f"TITLE     {line:70}"]
+        return "\n".join(strings)

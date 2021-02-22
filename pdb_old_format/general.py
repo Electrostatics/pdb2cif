@@ -42,7 +42,11 @@ def date_format(date) -> str:
     :param datetime date:  input date
     :returns:  formatted date string
     """
-    return date.strftime(DATE_FMT).upper()
+    if date is not None:
+        str_ = date.strftime(DATE_FMT).upper()
+    else:
+        str_ = "         "
+    return str_
 
 
 def atom_format(record) -> str:
@@ -55,9 +59,9 @@ def atom_format(record) -> str:
     """
     if len(record.name) == 4:
         return record.name
-    if record.name == record.element:
-        return f"{record.name:>2}  "
-    return f" {record.name:<3}"
+    if record.name[:2] == record.element[:2]:
+        return f"{record.name:>2}  "[:4]
+    return f" {record.name:<3}"[:4]
 
 
 class BaseRecord:

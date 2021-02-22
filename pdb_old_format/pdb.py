@@ -137,8 +137,6 @@ class SIGUIJ(BaseRecord):
         raise NotImplementedError()
 
 
-
-
 @register_line_parser
 class SIGATM(BaseRecord):
     """SIGATM class
