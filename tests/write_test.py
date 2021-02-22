@@ -4,7 +4,7 @@ import pytest
 import difflib
 from pprint import pprint
 from common import get_pdb, TEST_DATA, REF_LINE
-from pdb_old_format.pdb_entry import Entry
+from old_pdb.pdb_entry import Entry
 
 
 _LOGGER = logging.getLogger(__name__)

@@ -3,7 +3,7 @@ import setuptools
 
 
 setuptools.setup(
-    name="pdb_old_format",
+    name="old_pdb",
     version="0.0.1",
     description=(
         "This code reads and writes the old Protein Data Bank format."
