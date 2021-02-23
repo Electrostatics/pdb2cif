@@ -442,33 +442,33 @@ class Sheet(BaseRecord):
     | 42-45   | Atom         | curAtom     | Registration. Atom name in       |
     |         |              |             | curent strand.                   |
     +---------+--------------+-------------+----------------------------------+
-    | 46-48   | Residue name | curResName  | Registration. Residue name in        |
-    |         |              |             | current strand                       |
-    +---------+--------------+-------------+--------------------------------------+
-    | 50      | Character    | curChainId  | Registration. Chain identifier in    |
-    |         |              |             | current strand.                      |
-    +---------+--------------+-------------+--------------------------------------+
-    | 51-54   | Integer      | curResSeq   | Registration. Residue sequence       |
-    |         |              |             | number in current strand.            |
-    +---------+--------------+-------------+--------------------------------------+
-    | 55      | AChar        | curICode    | Registration. Insertion code in      |
-    |         |              |             | current strand.                      |
-    +---------+--------------+-------------+--------------------------------------+
-    | 57-60   | Atom         | prevAtom    | Registration. Atom name in previous  |
-    |         |              |             | strand.                              |
-    +---------+--------------+-------------+--------------------------------------+
-    | 61-63   | Residue name | prevResName | Registration. Residue name in        |
-    |         |              |             | previous strand.                     |
-    +---------+--------------+-------------+--------------------------------------+
-    | 65      | Character    | prevChainId | Registration. Chain identifier in    |
-    |         |              |             | previous  strand.                    |
-    +---------+--------------+-------------+--------------------------------------+
-    | 66-69   | Integer      | prevResSeq  | Registration. Residue sequence       |
-    |         |              |             | number in previous strand.           |
-    +---------+--------------+-------------+--------------------------------------+
-    | 70      | AChar        | prevICode   | Registration. Insertion code in      |
-    |         |              |             | previous strand.                     |
-    +---------+--------------+-------------+--------------------------------------+
+    | 46-48   | Residue name | curResName  | Registration. Residue name in    |
+    |         |              |             | current strand                   |
+    +---------+--------------+-------------+----------------------------------+
+    | 50      | Character    | curChainId  | Registration. Chain identifier   |
+    |         |              |             | in current strand.               |
+    +---------+--------------+-------------+----------------------------------+
+    | 51-54   | Integer      | curResSeq   | Registration. Residue sequence   |
+    |         |              |             | number in current strand.        |
+    +---------+--------------+-------------+----------------------------------+
+    | 55      | AChar        | curICode    | Registration. Insertion code in  |
+    |         |              |             | current strand.                  |
+    +---------+--------------+-------------+----------------------------------+
+    | 57-60   | Atom         | prevAtom    | Registration. Atom name in       |
+    |         |              |             | previous strand.                 |
+    +---------+--------------+-------------+----------------------------------+
+    | 61-63   | Residue name | prevResName | Registration. Residue name in    |
+    |         |              |             | previous strand.                 |
+    +---------+--------------+-------------+----------------------------------+
+    | 65      | Character    | prevChainId | Registration. Chain identifier   |
+    |         |              |             | in previous strand.              |
+    +---------+--------------+-------------+----------------------------------+
+    | 66-69   | Integer      | prevResSeq  | Registration. Residue sequence   |
+    |         |              |             | number in previous strand.       |
+    +---------+--------------+-------------+----------------------------------+
+    | 70      | AChar        | prevICode   | Registration. Insertion code in  |
+    |         |              |             | previous strand.                 |
+    +---------+--------------+-------------+----------------------------------+
     """
 
     def __init__(self):
