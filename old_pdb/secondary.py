@@ -18,33 +18,33 @@ class CisPeptide(BaseRecord):
     the cis conformation. This record replaces the use of footnote records
     to list cis peptides.
 
-    +---------+-------------+----------+--------------------------------------+
-    | COLUMNS | DATA TYPE   | FIELD    | DEFINITION                           |
-    +=========+=============+==========+======================================+
-    | 1-6     | Record name | "CISPEP" |                                      |
-    +---------+-------------+----------+--------------------------------------+
-    | 8-10    | Integer     | serNum   | Record serial number.                |
-    +---------+-------------+----------+--------------------------------------+
-    | 12-14   | LString(3)  | pep1     | Residue name.                        |
-    +---------+-------------+----------+--------------------------------------+
-    | 16      | Character   | chainID1 | Chain identifier.                    |
-    +---------+-------------+----------+--------------------------------------+
-    | 18-21   | Integer     | seqNum1  | Residue sequence number.             |
-    +---------+-------------+----------+--------------------------------------+
-    | 22      | AChar       | icode1   | Insertion code.                      |
-    +---------+-------------+----------+--------------------------------------+
-    | 26-28   | LString(3)  | pep2     | Residue name.                        |
-    +---------+-------------+----------+--------------------------------------+
-    | 30      | Character   | chainID2 | Chain identifier.                    |
-    +---------+-------------+----------+--------------------------------------+
-    | 32-35   | Integer     | seqNum2  | Residue sequence number.             |
-    +---------+-------------+----------+--------------------------------------+
-    | 36      | AChar       | icode2   | Insertion code.                      |
-    +---------+-------------+----------+--------------------------------------+
-    | 44-46   | Integer     | modNum   | Identifies the specific model.       |
-    +---------+-------------+----------+--------------------------------------+
-    | 54-59   | Real(6.2)   | measure  | Angle measurement in degrees.        |
-    +---------+-------------+----------+--------------------------------------+
+    +---------+-------------+-----------+-------------------------------------+
+    | COLUMNS | DATA TYPE   | FIELD     | DEFINITION                          |
+    +=========+=============+===========+=====================================+
+    | 1-6     | Record name | "CISPEP"  |                                     |
+    +---------+-------------+-----------+-------------------------------------+
+    | 8-10    | Integer     | ser_num   | Record serial number.               |
+    +---------+-------------+-----------+-------------------------------------+
+    | 12-14   | LString(3)  | pep1      | Residue name.                       |
+    +---------+-------------+-----------+-------------------------------------+
+    | 16      | Character   | chain_id1 | Chain identifier.                   |
+    +---------+-------------+-----------+-------------------------------------+
+    | 18-21   | Integer     | seq_num1  | Residue sequence number.            |
+    +---------+-------------+-----------+-------------------------------------+
+    | 22      | AChar       | icode1    | Insertion code.                     |
+    +---------+-------------+-----------+-------------------------------------+
+    | 26-28   | LString(3)  | pep2      | Residue name.                       |
+    +---------+-------------+-----------+-------------------------------------+
+    | 30      | Character   | chain_id2 | Chain identifier.                   |
+    +---------+-------------+-----------+-------------------------------------+
+    | 32-35   | Integer     | seq_num2  | Residue sequence number.            |
+    +---------+-------------+-----------+-------------------------------------+
+    | 36      | AChar       | icode2    | Insertion code.                     |
+    +---------+-------------+-----------+-------------------------------------+
+    | 44-46   | Integer     | mod_num   | Identifies the specific model.      |
+    +---------+-------------+-----------+-------------------------------------+
+    | 54-59   | Real(6.2)   | measure   | Angle measurement in degrees.       |
+    +---------+-------------+-----------+-------------------------------------+
     """
 
     def __init__(self):
@@ -95,35 +95,35 @@ class DisulfideBond(BaseRecord):
     polypeptide structures by identifying the two residues involved in the
     bond.
 
-    +---------+-------------+----------+--------------------------------------+
-    | COLUMNS | DATA TYPE   | FIELD    | DEFINITION                           |
-    +=========+=============+==========+======================================+
-    | 1-6     | Record name | "SSBOND" |                                      |
-    +---------+-------------+----------+--------------------------------------+
-    | 8-10    | Integer     | serNum   | Serial number.                       |
-    +---------+-------------+----------+--------------------------------------+
-    | 12-14   | LString(3)  | "CYS"    | Residue name.                        |
-    +---------+-------------+----------+--------------------------------------+
-    | 16      | Character   | chainID1 | Chain identifier.                    |
-    +---------+-------------+----------+--------------------------------------+
-    | 18-21   | Integer     | seqNum1  | Residue sequence number.             |
-    +---------+-------------+----------+--------------------------------------+
-    | 22      | AChar       | icode1   | Insertion code.                      |
-    +---------+-------------+----------+--------------------------------------+
-    | 26-28   | LString(3)  | "CYS"    | Residue name.                        |
-    +---------+-------------+----------+--------------------------------------+
-    | 30      | Character   | chainID2 | Chain identifier.                    |
-    +---------+-------------+----------+--------------------------------------+
-    | 32-35   | Integer     | seqNum2  | Residue sequence number.             |
-    +---------+-------------+----------+--------------------------------------+
-    | 36      | AChar       | icode2   | Insertion code.                      |
-    +---------+-------------+----------+--------------------------------------+
-    | 60-65   | SymOP       | sym1     | Symmetry operator for residue 1.     |
-    +---------+-------------+----------+--------------------------------------+
-    | 67-72   | SymOP       | sym2     | Symmetry operator for residue 2.     |
-    +---------+-------------+----------+--------------------------------------+
-    | 74-78   | Real(5.2)   | Length   | Disulfide bond distance              |
-    +---------+-------------+----------+--------------------------------------+
+    +---------+-------------+-----------+-------------------------------------+
+    | COLUMNS | DATA TYPE   | FIELD     | DEFINITION                          |
+    +=========+=============+===========+=====================================+
+    | 1-6     | Record name | "SSBOND"  |                                     |
+    +---------+-------------+-----------+-------------------------------------+
+    | 8-10    | Integer     | ser_num   | Serial number.                      |
+    +---------+-------------+-----------+-------------------------------------+
+    | 12-14   | LString(3)  | "CYS"     | Residue name.                       |
+    +---------+-------------+-----------+-------------------------------------+
+    | 16      | Character   | chain_id1 | Chain identifier.                   |
+    +---------+-------------+-----------+-------------------------------------+
+    | 18-21   | Integer     | seq_num1  | Residue sequence number.            |
+    +---------+-------------+-----------+-------------------------------------+
+    | 22      | AChar       | icode1    | Insertion code.                     |
+    +---------+-------------+-----------+-------------------------------------+
+    | 26-28   | LString(3)  | "CYS"     | Residue name.                       |
+    +---------+-------------+-----------+-------------------------------------+
+    | 30      | Character   | chain_id2 | Chain identifier.                   |
+    +---------+-------------+-----------+-------------------------------------+
+    | 32-35   | Integer     | seq_num2  | Residue sequence number.            |
+    +---------+-------------+-----------+-------------------------------------+
+    | 36      | AChar       | icode2    | Insertion code.                     |
+    +---------+-------------+-----------+-------------------------------------+
+    | 60-65   | SymOP       | sym1      | Symmetry operator for residue 1.    |
+    +---------+-------------+-----------+-------------------------------------+
+    | 67-72   | SymOP       | sym2      | Symmetry operator for residue 2.    |
+    +---------+-------------+-----------+-------------------------------------+
+    | 74-78   | Real(5.2)   | length    | Disulfide bond distance             |
+    +---------+-------------+-----------+-------------------------------------+
     """
 
     def __init__(self):
@@ -172,49 +172,49 @@ class Helix(BaseRecord):
     molecule. Helices are both named and numbered. The residues where the
     helix begins and ends are noted, as well as the total length.
 
-    +---------+--------------+-------------+----------------------------------+
-    | COLUMNS | DATA TYPE    | FIELD       | DEFINITION                       |
-    +=========+==============+=============+==================================+
-    | 1-6     | Record name  | "HELIX "    |                                  |
-    +---------+--------------+-------------+----------------------------------+
-    | 8-10    | Integer      | serNum      | Serial number of the helix. This |
-    |         |              |             | starts at 1 and increases        |
-    |         |              |             | incrementally.                   |
-    +---------+--------------+-------------+----------------------------------+
-    | 12-14   | LString(3)   | helixID     | Helix identifier. In addition to |
-    |         |              |             | a serial number, each helix is   |
-    |         |              |             | given an alphanumeric character  |
-    |         |              |             | helix identifier.                | 
-    +---------+--------------+-------------+----------------------------------+
-    | 16-18   | Residue name | initResName | Name of the initial residue.     |
-    +---------+--------------+-------------+----------------------------------+
-    | 20      | Character    | initChainID | Chain identifier for the chain   |
-    |         |              |             | containing this helix.           |
-    +---------+--------------+-------------+----------------------------------+
-    | 22-25   | Integer      | initSeqNum  | Sequence number of the initial   |
-    |         |              |             | residue.                         |
-    +---------+--------------+-------------+----------------------------------+
-    | 26      | AChar        | initICode   | Insertion code of the initial    |
-    |         |              |             | residue.                         |
-    +---------+--------------+-------------+----------------------------------+
-    | 28-30   | Residue name | endResName  | Name of the terminal residue of  |
-    |         |              |             | the helix.                       |
-    +---------+--------------+-------------+----------------------------------+
-    | 32      | Character    | endChainID  | Chain identifier for the chain   |
-    |         |              |             | containing this helix.           |
-    +---------+--------------+-------------+----------------------------------+
-    | 34-37   | Integer      | endSeqNum   | Sequence number of the terminal  |
-    |         |              |             | residue.                         |
-    +---------+--------------+-------------+----------------------------------+
-    | 38      | AChar        | endICode    | Insertion code of the terminal   |
-    |         |              |             | residue.                         |
-    +---------+--------------+-------------+----------------------------------+
-    | 39-40   | Integer      | helixClass  | Helix class (see below).         |
-    +---------+--------------+-------------+----------------------------------+
-    | 41-70   | String       | comment     | Comment about this helix.        |
-    +---------+--------------+-------------+----------------------------------+
-    | 72-76   | Integer      | length      | Length of this helix.            |
-    +---------+--------------+-------------+----------------------------------+
+    +---------+--------------+---------------+--------------------------------+
+    | COLUMNS | DATA TYPE    | FIELD         | DEFINITION                     |
+    +=========+==============+===============+================================+
+    | 1-6     | Record name  | "HELIX "      |                                |
+    +---------+--------------+---------------+--------------------------------+
+    | 8-10    | Integer      | serNum        | Serial number of the helix.    |
+    |         |              |               | starts at 1 and increases      |
+    |         |              |               | incrementally.                 |
+    +---------+--------------+---------------+--------------------------------+
+    | 12-14   | LString(3)   | helix_id      | Helix identifier. In addition  |
+    |         |              |               | to a serial number, each helix |
+    |         |              |               | is given an alphanumeric       |
+    |         |              |               | helix identifier.              | 
+    +---------+--------------+---------------+--------------------------------+
+    | 16-18   | Residue name | init_res_name | Name of the initial residue.   |
+    +---------+--------------+---------------+--------------------------------+
+    | 20      | Character    | init_chain_id | Chain identifier for the chain |
+    |         |              |               | containing this helix.         |
+    +---------+--------------+---------------+--------------------------------+
+    | 22-25   | Integer      | init_seq_num  | Sequence number of the initial |
+    |         |              |               | residue.                       |
+    +---------+--------------+---------------+--------------------------------+
+    | 26      | AChar        | init_i_code   | Insertion code of the initial  |
+    |         |              |               | residue.                       |
+    +---------+--------------+---------------+--------------------------------+
+    | 28-30   | Residue name | end_res_name  | Name of the terminal residue   |
+    |         |              |               | of the helix.                  |
+    +---------+--------------+---------------+--------------------------------+
+    | 32      | Character    | end_chain_id  | Chain identifier for the chain |
+    |         |              |               | containing this helix.         |
+    +---------+--------------+---------------+--------------------------------+
+    | 34-37   | Integer      | end_seq_num   | Sequence number of the         |
+    |         |              |               | terminal residue.              |
+    +---------+--------------+---------------+--------------------------------+
+    | 38      | AChar        | end_i_code    | Insertion code of the terminal |
+    |         |              |               | residue.                       |
+    +---------+--------------+---------------+--------------------------------+
+    | 39-40   | Integer      | helix_class   | Helix class (see below).       |
+    +---------+--------------+---------------+--------------------------------+
+    | 41-70   | String       | comment       | Comment about this helix.      |
+    +---------+--------------+---------------+--------------------------------+
+    | 72-76   | Integer      | length        | Length of this helix.          |
+    +---------+--------------+---------------+--------------------------------+
     """
 
     def __init__(self):
@@ -280,41 +280,41 @@ class Link(BaseRecord):
 
     .. todo::  Clean up output using element/atom information and formatting
 
-    +---------+--------------+----------+-------------------------------------+
-    | COLUMNS | DATA TYPE    | FIELD    | DEFINITION                          |
-    +=========+==============+==========+=====================================+
-    | 1-6     | Record name  | "LINK  " |                                     |
-    +---------+--------------+----------+-------------------------------------+
-    | 13-16   | Atom         | name1    | Atom name.                          |
-    +---------+--------------+----------+-------------------------------------+
-    | 17      | Character    | altLoc1  | Alternate location indicator.       |
-    +---------+--------------+----------+-------------------------------------+
-    | 18-20   | Residue name | resName1 | Residue  name.                      |
-    +---------+--------------+----------+-------------------------------------+
-    | 22      | Character    | chainID1 | Chain identifier.                   |
-    +---------+--------------+----------+-------------------------------------+
-    | 23-26   | Integer      | resSeq1  | Residue sequence number.            |
-    +---------+--------------+----------+-------------------------------------+
-    | 27      | AChar        | iCode1   | Insertion code.                     |
-    +---------+--------------+----------+-------------------------------------+
-    | 43-46   | Atom         | name2    | Atom name.                          |
-    +---------+--------------+----------+-------------------------------------+
-    | 47      | Character    | altLoc2  | Alternate location indicator.       |
-    +---------+--------------+----------+-------------------------------------+
-    | 48-50   | Residue name | resName2 | Residue name.                       |
-    +---------+--------------+----------+-------------------------------------+
-    | 52      | Character    | chainID2 | Chain identifier.                   |
-    +---------+--------------+----------+-------------------------------------+
-    | 53-56   | Integer      | resSeq2  | Residue sequence number.            |
-    +---------+--------------+----------+-------------------------------------+
-    | 57      | AChar        | iCode2   | Insertion code.                     |
-    +---------+--------------+----------+-------------------------------------+
-    | 60-65   | SymOP        | sym1     | Symmetry operator atom 1.           |
-    +---------+--------------+----------+-------------------------------------+
-    | 67-72   | SymOP        | sym2     | Symmetry operator atom 2.           |
-    +---------+--------------+----------+-------------------------------------+
-    | 74-78   | Real(5.2)    | Length   | Link distance                       |
-    +---------+--------------+----------+-------------------------------------+
+    +---------+--------------+-----------+------------------------------------+
+    | COLUMNS | DATA TYPE    | FIELD     | DEFINITION                         |
+    +=========+==============+===========+====================================+
+    | 1-6     | Record name  | "LINK  "  |                                    |
+    +---------+--------------+-----------+------------------------------------+
+    | 13-16   | Atom         | name1     | Atom name.                         |
+    +---------+--------------+-----------+------------------------------------+
+    | 17      | Character    | alt_loc1  | Alternate location indicator.      |
+    +---------+--------------+-----------+------------------------------------+
+    | 18-20   | Residue name | res_name1 | Residue  name.                     |
+    +---------+--------------+-----------+------------------------------------+
+    | 22      | Character    | chain_id  | Chain identifier.                  |
+    +---------+--------------+-----------+------------------------------------+
+    | 23-26   | Integer      | res_seq1  | Residue sequence number.           |
+    +---------+--------------+-----------+------------------------------------+
+    | 27      | AChar        | ins_code1 | Insertion code.                    |
+    +---------+--------------+-----------+------------------------------------+
+    | 43-46   | Atom         | name2     | Atom name.                         |
+    +---------+--------------+-----------+------------------------------------+
+    | 47      | Character    | alt_loc2  | Alternate location indicator.      |
+    +---------+--------------+-----------+------------------------------------+
+    | 48-50   | Residue name | res_name2 | Residue name.                      |
+    +---------+--------------+-----------+------------------------------------+
+    | 52      | Character    | chain_id  | Chain identifier.                  |
+    +---------+--------------+-----------+------------------------------------+
+    | 53-56   | Integer      | res_seq2  | Residue sequence number.           |
+    +---------+--------------+-----------+------------------------------------+
+    | 57      | AChar        | ins_code2 | Insertion code.                    |
+    +---------+--------------+-----------+------------------------------------+
+    | 60-65   | SymOP        | sym1      | Symmetry operator atom 1.          |
+    +---------+--------------+-----------+------------------------------------+
+    | 67-72   | SymOP        | sym2      | Symmetry operator atom 2.          |
+    +---------+--------------+-----------+------------------------------------+
+    | 74-78   | Real(5.2)    | Length    | Link distance                      |
+    +---------+--------------+-----------+------------------------------------+
     """
 
     def __init__(self):
@@ -399,76 +399,77 @@ class Sheet(BaseRecord):
     molecule. Sheets are both named and numbered. The residues where the
     sheet begins and ends are noted.
 
-    +---------+--------------+-------------+----------------------------------+
-    | COLUMNS | DATA TYPE    | FIELD       | DEFINITION                       |
-    +=========+==============+=============+==================================+
-    | 1-6     | Record name  | "SHEET "    |                                  |
-    +---------+--------------+-------------+----------------------------------+
-    | 8-10    | Integer      | strand      | Strand number which starts at 1  |
-    |         |              |             | for each strand within a sheet   |
-    |         |              |             | and increases by one.            |
-    +---------+--------------+-------------+----------------------------------+
-    | 12-14   | LString(3)   | sheetID     | Sheet identifier.                |
-    +---------+--------------+-------------+----------------------------------+
-    | 15-16   | Integer      | numStrands  | Number of strands in sheet.      |
-    +---------+--------------+-------------+----------------------------------+
-    | 18-20   | Residue name | initResName | Residue name of initial residue. |
-    +---------+--------------+-------------+----------------------------------+
-    | 22      | Character    | initChainID | Chain identifier of initial      |
-    |         |              |             | residue in strand.               |
-    +---------+--------------+-------------+----------------------------------+
-    | 23-26   | Integer      | initSeqNum  | Sequence number of initial       |
-    |         |              |             | residue in strand.               |
-    +---------+--------------+-------------+----------------------------------+
-    | 27      | AChar        | initICode   | Insertion code of initial        |
-    |         |              |             | residue in strand.               |
-    +---------+--------------+-------------+----------------------------------+
-    | 29-31   | Residue name | endResName  | Residue name of terminal residue |
-    +---------+--------------+-------------+----------------------------------+
-    | 33      | Character    | endChainID  | Chain identifier of terminal     |
-    |         |              |             | residue                          |
-    +---------+--------------+-------------+----------------------------------+
-    | 34-37   | Integer      | endSeqNum   | Sequence number of terminal      |
-    |         |              |             | residue.                         |
-    +---------+--------------+-------------+----------------------------------+
-    | 38      | AChar        | endICode    | Insertion code of terminal       |
-    |         |              |             | residue.                         |
-    +---------+--------------+-------------+----------------------------------+
-    | 39-40   | Integer      | sense       | Sense of strand with respect to  |
-    |         |              |             | previous strand in the sheet. 0  |
-    |         |              |             | if first strand, 1 if parallel,  |
-    |         |              |             | and -1 if anti-parallel.         |
-    +---------+--------------+-------------+----------------------------------+
-    | 42-45   | Atom         | curAtom     | Registration. Atom name in       |
-    |         |              |             | curent strand.                   |
-    +---------+--------------+-------------+----------------------------------+
-    | 46-48   | Residue name | curResName  | Registration. Residue name in    |
-    |         |              |             | current strand                   |
-    +---------+--------------+-------------+----------------------------------+
-    | 50      | Character    | curChainId  | Registration. Chain identifier   |
-    |         |              |             | in current strand.               |
-    +---------+--------------+-------------+----------------------------------+
-    | 51-54   | Integer      | curResSeq   | Registration. Residue sequence   |
-    |         |              |             | number in current strand.        |
-    +---------+--------------+-------------+----------------------------------+
-    | 55      | AChar        | curICode    | Registration. Insertion code in  |
-    |         |              |             | current strand.                  |
-    +---------+--------------+-------------+----------------------------------+
-    | 57-60   | Atom         | prevAtom    | Registration. Atom name in       |
-    |         |              |             | previous strand.                 |
-    +---------+--------------+-------------+----------------------------------+
-    | 61-63   | Residue name | prevResName | Registration. Residue name in    |
-    |         |              |             | previous strand.                 |
-    +---------+--------------+-------------+----------------------------------+
-    | 65      | Character    | prevChainId | Registration. Chain identifier   |
-    |         |              |             | in previous strand.              |
-    +---------+--------------+-------------+----------------------------------+
-    | 66-69   | Integer      | prevResSeq  | Registration. Residue sequence   |
-    |         |              |             | number in previous strand.       |
-    +---------+--------------+-------------+----------------------------------+
-    | 70      | AChar        | prevICode   | Registration. Insertion code in  |
-    |         |              |             | previous strand.                 |
-    +---------+--------------+-------------+----------------------------------+
+    +---------+--------------+---------------+--------------------------------+
+    | COLUMNS | DATA TYPE    | FIELD         | DEFINITION                     |
+    +=========+==============+===============+================================+
+    | 1-6     | Record name  | "SHEET "      |                                |
+    +---------+--------------+---------------+--------------------------------+
+    | 8-10    | Integer      | strand        | Strand number which starts at  |
+    |         |              |               | 1 for each strand within a     |
+    |         |              |               | sheet and increases by one.    |
+    +---------+--------------+---------------+--------------------------------+
+    | 12-14   | LString(3)   | sheet_id      | Sheet identifier.              |
+    +---------+--------------+---------------+--------------------------------+
+    | 15-16   | Integer      | num_strands   | Number of strands in sheet.    |
+    +---------+--------------+---------------+--------------------------------+
+    | 18-20   | Residue name | init_res_name | Name of initial residue.       |
+    +---------+--------------+---------------+--------------------------------+
+    | 22      | Character    | init_chain_id | Chain identifier of initial    |
+    |         |              |               | residue in strand.             |
+    +---------+--------------+---------------+--------------------------------+
+    | 23-26   | Integer      | init_seq_num  | Sequence number of initial     |
+    |         |              |               | residue in strand.             |
+    +---------+--------------+---------------+--------------------------------+
+    | 27      | AChar        | init_ins_code | Insertion code of initial      |
+    |         |              |               | residue in strand.             |
+    +---------+--------------+---------------+--------------------------------+
+    | 29-31   | Residue name | end_res_name  | Name of terminal residue       |
+    +---------+--------------+---------------+--------------------------------+
+    | 33      | Character    | end_chain_id  | Chain identifier of terminal   |
+    |         |              |               | residue                        |
+    +---------+--------------+---------------+--------------------------------+
+    | 34-37   | Integer      | end_seq_num   | Sequence number of terminal    |
+    |         |              |               | residue.                       |
+    +---------+--------------+---------------+--------------------------------+
+    | 38      | AChar        | end_ins_code  | Insertion code of terminal     |
+    |         |              |               | residue.                       |
+    +---------+--------------+---------------+--------------------------------+
+    | 39-40   | Integer      | sense         | Sense of strand with respect   |
+    |         |              |               | to previous strand in the      |
+    |         |              |               | sheet. 0 if first strand, 1 if |
+    |         |              |               | parallel, and -1 if            |
+    |         |              |               | anti-parallel.                 |
+    +---------+--------------+---------------+--------------------------------+
+    | 42-45   | Atom         | cur_atom      | Registration. Atom name in     |
+    |         |              |               | current strand.                |
+    +---------+--------------+---------------+--------------------------------+
+    | 46-48   | Residue name | cur_res_name  | Registration. Residue name in  |
+    |         |              |               | current strand                 |
+    +---------+--------------+---------------+--------------------------------+
+    | 50      | Character    | cur_chain_id  | Registration. Chain identifier |
+    |         |              |               | in current strand.             |
+    +---------+--------------+---------------+--------------------------------+
+    | 51-54   | Integer      | cur_res_seq   | Registration. Residue sequence |
+    |         |              |               | number in current strand.      |
+    +---------+--------------+---------------+--------------------------------+
+    | 55      | AChar        | cur_ins_code  | Registration. Insertion code   |
+    |         |              |               | in current strand.             |
+    +---------+--------------+---------------+--------------------------------+
+    | 57-60   | Atom         | prev_atom     | Registration. Atom name in     |
+    |         |              |               | previous strand.               |
+    +---------+--------------+---------------+--------------------------------+
+    | 61-63   | Residue name | prev_res_name | Registration. Residue name in  |
+    |         |              |               | previous strand.               |
+    +---------+--------------+---------------+--------------------------------+
+    | 65      | Character    | prev_chain_id | Registration. Chain identifier |
+    |         |              |               | in previous strand.            |
+    +---------+--------------+---------------+--------------------------------+
+    | 66-69   | Integer      | prev_res_seq  | Registration. Residue sequence |
+    |         |              |               | number in previous strand.     |
+    +---------+--------------+---------------+--------------------------------+
+    | 70      | AChar        | prev_ins_code | Registration. Insertion code   |
+    |         |              |               | in previous strand.            |
+    +---------+--------------+---------------+--------------------------------+
     """
 
     def __init__(self):
@@ -479,11 +480,11 @@ class Sheet(BaseRecord):
         self.init_res_name = None
         self.init_chain_id = None
         self.init_seq_num = None
-        self.init_i_code = None
+        self.init_ins_code = None
         self.end_res_name = None
         self.end_chain_id = None
         self.end_seq_num = None
-        self.end_i_code = None
+        self.end_ins_code = None
         self.sense = None
         self.cur_atom = ""
         self.curr_res_name = ""
@@ -508,11 +509,11 @@ class Sheet(BaseRecord):
         self.init_res_name = line[17:20].strip()
         self.init_chain_id = line[21].strip()
         self.init_seq_num = int(line[22:26].strip())
-        self.init_i_code = line[26].strip()
+        self.init_ins_code = line[26].strip()
         self.end_res_name = line[28:31].strip()
         self.end_chain_id = line[32].strip()
         self.end_seq_num = int(line[33:37].strip())
-        self.end_i_code = line[37].strip()
+        self.end_ins_code = line[37].strip()
         self.sense = int(line[38:40].strip())
         self.cur_atom = line[41:45].strip()
         self.curr_res_name = line[45:48].strip()
@@ -538,8 +539,8 @@ class Sheet(BaseRecord):
         string = (
             f"SHEET  {self.strand:3} {self.sheet_id:>3}{self.num_strands:2}"
             f" {self.init_res_name:3} {self.init_chain_id:1}"
-            f"{self.init_seq_num:4}{self.init_i_code:1} {self.end_res_name:3}"
-            f" {self.end_chain_id:1}{self.end_seq_num:4}{self.end_i_code:1}"
+            f"{self.init_seq_num:4}{self.init_ins_code:1} {self.end_res_name:3}"
+            f" {self.end_chain_id:1}{self.end_seq_num:4}{self.end_ins_code:1}"
             f"{self.sense:2}"
         )
         if len(self.cur_atom) == 1:

@@ -21,8 +21,7 @@ def test_pdb(pdb_id):
     assert entry.num_atoms() == test_row["Num_heavy_atoms"]
     assert entry.num_residues() == test_row["Num_residues"]
     assert entry.num_chains() == test_row["Num_chains"]
-    if entry.num_models:
-        assert entry.num_models.model_number == test_row["Num_models"]
-    else:
-        assert test_row["Num_models"] == 1
+    num_model = test_row["Num_models"]
+    if num_model > 1:
+        assert entry.num_model.model_number == test_row["Num_models"]
     assert len(entry.model) == test_row["Num_models"]
