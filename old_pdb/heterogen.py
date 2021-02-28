@@ -29,24 +29,24 @@ class Heterogen(BaseRecord):
     Het records also describe heterogens for which the chemical identity is
     unknown, in which case the group is assigned the hetatm_id UNK.
 
-    +---------+-------------+-------------+-----------------------------------+
-    | COLUMNS | DATA TYPE   | FIELD       | DEFINITION                        |
-    +=========+=============+=============+===================================+
-    | 1-6     | Record name | "HET   "    |                                   |
-    +---------+-------------+-------------+-----------------------------------+
-    | 8-10    | LString(3)  | hetID       | Het identifier, right-justified.  |
-    +---------+-------------+-------------+-----------------------------------+
-    | 13      | Character   | ChainID     | Chain identifier.                 |
-    +---------+-------------+-------------+-----------------------------------+
-    | 14-17   | Integer     | seqNum      | Sequence number.                  |
-    +---------+-------------+-------------+-----------------------------------+
-    | 18      | AChar       | iCode       | Insertion code.                   |
-    +---------+-------------+-------------+-----------------------------------+
-    | 21-25   | Integer     | numHetAtoms | Number of HETATM records for the  |
-    |         |             |             | group present in the entry.       |
-    +---------+-------------+-------------+-----------------------------------+
-    | 31-70   | String      | text        | Text describing Het group.        |
-    +---------+-------------+-------------+-----------------------------------+
+    +---------+-------------+---------------+---------------------------------+
+    | COLUMNS | DATA TYPE   | FIELD         | DEFINITION                      |
+    +=========+=============+===============+=================================+
+    | 1-6     | Record name | "HET   "      |                                 |
+    +---------+-------------+---------------+---------------------------------+
+    | 8-10    | LString(3)  | het_id        | Identifier, right-justified.    |
+    +---------+-------------+---------------+---------------------------------+
+    | 13      | Character   | chain_id      | Chain identifier.               |
+    +---------+-------------+---------------+---------------------------------+
+    | 14-17   | Integer     | seq_num       | Sequence number.                |
+    +---------+-------------+---------------+---------------------------------+
+    | 18      | AChar       | ins_code      | Insertion code.                 |
+    +---------+-------------+---------------+---------------------------------+
+    | 21-25   | Integer     | num_het_atoms | Number of HETATM records for    |
+    |         |             |               | the group present in the entry. |
+    +---------+-------------+---------------+---------------------------------+
+    | 31-70   | String      | text          | Text describing Het group.      |
+    +---------+-------------+---------------+---------------------------------+
     """
 
     def __init__(self):
@@ -92,7 +92,7 @@ class HeterogenName(BaseRecord):
     | 9-10    | Continuation | continuation | Allows concatenation of         |
     |         |              |              | multiple records.               |
     +---------+--------------+--------------+---------------------------------+
-    | 12-14   | LString(3)   | hetID        | Het identifier, right-          |
+    | 12-14   | LString(3)   | het_id       | Het identifier, right-          |
     |         |              |              | justified.                      |
     +---------+--------------+--------------+---------------------------------+
     | 16-70   | String       | text         | Chemical name.                  |
@@ -145,10 +145,10 @@ class HeterogenSynonym(BaseRecord):
     | 9-10     | Continuation | continuation | Allows concatenation of        |
     |          |              |              | multiple records.              |
     +----------+--------------+--------------+--------------------------------+
-    | 12-14    | LString(3)   | hetID        | Het identifier, right-         |
+    | 12-14    | LString(3)   | het_id       | Het identifier, right-         |
     |          |              |              | justified.                     |
     +----------+--------------+--------------+--------------------------------+
-    | 16-70    | SList        | hetSynonyms  | List of synonyms.              |
+    | 16-70    | SList        | synonyms     | List of synonyms.              |
     +----------+--------------+--------------+--------------------------------+
     """
 
@@ -201,7 +201,20 @@ class Formula(BaseRecord):
 
     def __init__(self):
         super().__init__()
-        self.components = OrderedDict()
+        self._components = OrderedDict()
+
+    @property
+    def components(self) -> dict:
+        """Formulae for components.
+
+        :returns:  dictionary with component numbers as keys and values that
+            consist of tuples of the hetatom ID and the formula text.
+        """
+        return self._components
+
+    @components.setter
+    def components(self, value):
+        self._components = value
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -210,15 +223,15 @@ class Formula(BaseRecord):
         """
         super().parse_line(line)
         component_num = int(line[8:10].strip())
-        if component_num not in self.components:
-            self.components[component_num] = []
+        if component_num not in self._components:
+            self._components[component_num] = []
         hetatm_id = line[12:15].strip()
         text = line[18:70].rstrip()
-        self.components[component_num].append((hetatm_id, text))
+        self._components[component_num].append((hetatm_id, text))
 
     def __str__(self):
         strings = []
-        for component_num, component_list in self.components.items():
+        for component_num, component_list in self._components.items():
             for hetatm_id, text in component_list:
                 string = (
                     f"FORMUL  {component_num:>2}  {hetatm_id:>3}   {text:52}"

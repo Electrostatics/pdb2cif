@@ -18,17 +18,17 @@ class Author(BaseRecord):
     The AUTHOR record contains the names of the people responsible for the
     contents of the entry.
 
-    +---------+--------------+--------------+-------------------------------+
-    | COLUMNS | DATA TYPE    | FIELD        | DEFINITION                    |
-    +=========+==============+==============+===============================+
-    | 1-6     | Record name  | "AUTHOR"     |                               |
-    +---------+--------------+--------------+-------------------------------+
-    | 9-10    | Continuation | continuation | Allows concatenation of       |
-    |         |              |              | multiple records.             |
-    +---------+--------------+--------------+-------------------------------+
-    | 11-79   | List         | authorList   | List of the author names,     |
-    |         |              |              | separated by commas.          |
-    +---------+--------------+--------------+-------------------------------+
+    +---------+--------------+---------------+-------------------------------+
+    | COLUMNS | DATA TYPE    | FIELD         | DEFINITION                    |
+    +=========+==============+===============+===============================+
+    | 1-6     | Record name  | "AUTHOR"      |                               |
+    +---------+--------------+---------------+-------------------------------+
+    | 9-10    | Continuation | continuation  | Allows concatenation of       |
+    |         |              |               | multiple records.             |
+    +---------+--------------+---------------+-------------------------------+
+    | 11-79   | List         | author_list   | List of the author names,     |
+    |         |              |               | separated by commas.          |
+    +---------+--------------+---------------+-------------------------------+
     """
 
     def __init__(self):
@@ -68,7 +68,7 @@ class Caveat(BaseRecord):
     | 9-10    | Continuation | continuation | Allows concatenation of         |
     |         |              |              | multiple records.               |
     +---------+--------------+--------------+---------------------------------+
-    | 12-15   | IDcode       | idCode       | PDB ID code of this entry.      |
+    | 12-15   | IDcode       | id_code      | PDB ID code of this entry.      |
     +---------+--------------+--------------+---------------------------------+
     | 20-79   | String       | comment      | Free text giving the reason for |
     |         |              |              | the CAVEAT.                     |
@@ -217,11 +217,11 @@ class Header(BaseRecord):
     +---------+-------------+----------------+--------------------------------+
     | 11-50   | String(40)  | classification | Classifies the molecule(s).    |
     +---------+-------------+----------------+--------------------------------+
-    | 51-59   | Date        | depDate        | Deposition date. This is the   |
+    | 51-59   | Date        | dep_date       | Deposition date. This is the   |
     |         |             |                | date the coordinates  were     |
     |         |             |                | received at the PDB.           |
     +---------+-------------+----------------+--------------------------------+
-    | 63-66   | IDcode      | idCode         | This identifier is unique      |
+    | 63-66   | IDcode      | id_code        | This identifier is unique      |
     |         |             |                | within the PDB.                |
     +---------+-------------+----------------+--------------------------------+
     """
@@ -301,7 +301,7 @@ class Keywords(BaseRecord):
     | 9-10    | Continuation | continuation | Allows concatenation of records |
     |         |              |              | if necessary.                   |
     +---------+--------------+--------------+---------------------------------+
-    | 11-79   | List         | keywds       | Comma-separated list of         |
+    | 11-79   | List         | keywords     | Comma-separated list of         |
     |         |              |              | keywords relevant to the entry. |
     +---------+--------------+--------------+---------------------------------+
     """
@@ -381,46 +381,46 @@ class Obsolete(BaseRecord):
     The format allows for the case of multiple new entries replacing one
     existing entry.
 
-    +---------+--------------+--------------+--------------------------------+
-    | COLUMNS | DATA TYPE    | FIELD        | DEFINITION                     |
-    +=========+==============+==============+================================+
-    | 1-6     | Record name  | "OBSLTE"     |                                |
-    +---------+--------------+--------------+--------------------------------+
-    | 9-10    | Continuation | continuation | Allows concatenation of        |
-    |         |              |              | multiple records               |
-    +---------+--------------+--------------+--------------------------------+
-    | 12-20   | Date         | repDate      | Date that this entry was       |
-    |         |              |              | replaced.                      |
-    +---------+--------------+--------------+--------------------------------+
-    | 22-25   | IDcode       | idCode       | ID code of this entry.         |
-    +---------+--------------+--------------+--------------------------------+
-    | 32-35   | IDcode       | rIdCode      | ID code of entry that replaced |
-    |         |              |              | this one.                      |
-    +---------+--------------+--------------+--------------------------------+
-    | 37-40   | IDcode       | rIdCode      | ID code of entry that replaced |
-    |         |              |              | this one.                      |
-    +---------+--------------+--------------+--------------------------------+
-    | 42-45   | IDcode       | rIdCode      | ID code of entry that replaced |
-    |         |              |              | this one.                      |
-    +---------+--------------+--------------+--------------------------------+
-    | 47-50   | IDcode       | rIdCode      | ID code of entry that replaced |
-    |         |              |              | this one.                      |
-    +---------+--------------+--------------+--------------------------------+
-    | 52-55   | IDcode       | rIdCode      | ID code of entry that replaced |
-    |         |              |              | this one.                      |
-    +---------+--------------+--------------+--------------------------------+
-    | 57-60   | IDcode       | rIdCode      | ID code of entry that replaced |
-    |         |              |              | this one.                      |
-    +---------+--------------+--------------+--------------------------------+
-    | 62-65   | IDcode       | rIdCode      | ID code of entry that replaced |
-    |         |              |              | this one.                      |
-    +---------+--------------+--------------+--------------------------------+
-    | 67-70   | IDcode       | rIdCode      | ID code of entry that replaced |
-    |         |              |              | this one.                      |
-    +---------+--------------+--------------+--------------------------------+
-    | 72-75   | IDcode       | rIdCode      | ID code of entry that replaced |
-    |         |              |              | this one.                      |
-    +---------+--------------+--------------+--------------------------------+
+    +---------+--------------+---------------------+--------------------------+
+    | COLUMNS | DATA TYPE    | FIELD               | DEFINITION               |
+    +=========+==============+=====================+==========================+
+    | 1-6     | Record name  | "OBSLTE"            |                          |
+    +---------+--------------+---------------------+--------------------------+
+    | 9-10    | Continuation | continuation        | Allows concatenation of  |
+    |         |              |                     | multiple records         |
+    +---------+--------------+---------------------+--------------------------+
+    | 12-20   | Date         | replace_date        | Date that this entry was |
+    |         |              |                     | replaced.                |
+    +---------+--------------+---------------------+--------------------------+
+    | 22-25   | IDcode       | id_code             | ID code of this entry.   |
+    +---------+--------------+---------------------+--------------------------+
+    | 32-35   | IDcode       | replace_id_codes[0] | ID of entry replacing    |
+    |         |              |                     | this one.                |
+    +---------+--------------+---------------------+--------------------------+
+    | 37-40   | IDcode       | replace_id_codes[1] | ID of entry replacing    |
+    |         |              |                     | this one.                |
+    +---------+--------------+---------------------+--------------------------+
+    | 42-45   | IDcode       | replace_id_codes[2] | ID of entry replacing    |
+    |         |              |                     | this one.                |
+    +---------+--------------+---------------------+--------------------------+
+    | 47-50   | IDcode       | replace_id_codes[3] | ID of entry replacing    |
+    |         |              |                     | this one.                |
+    +---------+--------------+---------------------+--------------------------+
+    | 52-55   | IDcode       | replace_id_codes[4] | ID of entry replacing    |
+    |         |              |                     | this one.                |
+    +---------+--------------+---------------------+--------------------------+
+    | 57-60   | IDcode       | replace_id_codes[5] | ID of entry replacing    |
+    |         |              |                     | this one.                |
+    +---------+--------------+---------------------+--------------------------+
+    | 62-65   | IDcode       | replace_id_codes[6] | ID of entry replacing    |
+    |         |              |                     | this one.                |
+    +---------+--------------+---------------------+--------------------------+
+    | 67-70   | IDcode       | replace_id_codes[7] | ID of entry replacing    |
+    |         |              |                     | this one.                |
+    +---------+--------------+---------------------+--------------------------+
+    | 72-75   | IDcode       | replace_id_codes[8] | ID of entry replacing    |
+    |         |              |                     | this one.                |
+    +---------+--------------+---------------------+--------------------------+
     """
 
     def __init__(self):
@@ -515,38 +515,38 @@ class Remark(BaseRecord):
 class Revision(BaseRecord):
     """Class to store contents of a single REVDAT modification.
 
-    +---------+--------------+--------------+---------------------------------+
-    | COLUMNS | DATA TYPE    | FIELD        | DEFINITION                      |
-    +=========+==============+==============+=================================+
-    | 1-6     | Record name  | "REVDAT"     |                                 |
-    +---------+--------------+--------------+---------------------------------+
-    | 8-10    | Integer      | modNum       | Modification number.            |
-    +---------+--------------+--------------+---------------------------------+
-    | 11-12   | Continuation | continuation | Allows concatenation of         |
-    |         |              |              | multiple records.               |
-    +---------+--------------+--------------+---------------------------------+
-    | 14-22   | Date         | modDate      | Date of modification (or        |
-    |         |              |              | for new entries) in DD-MMM-YY   |
-    |         |              |              | format. This is not repeated on |
-    |         |              |              | continued lines.                |
-    +---------+--------------+--------------+---------------------------------+
-    | 24-27   | IDCode       | modId        | ID code of this entry. This is  |
-    |         |              |              | not repeated on continuation    |
-    |         |              |              | lines.                          |
-    +---------+--------------+--------------+---------------------------------+
-    | 32      | Integer      | modType      | An integer identifying the type |
-    |         |              |              | of modification. For all        |
-    |         |              |              | revisions, the modification     |
-    |         |              |              | type is listed as 1             |
-    +---------+--------------+--------------+---------------------------------+
-    | 40-45   | LString(6)   | record       | Modification detail.            |
-    +---------+--------------+--------------+---------------------------------+
-    | 47-52   | LString(6)   | record       | Modification detail.            |
-    +---------+--------------+--------------+---------------------------------+
-    | 54-59   | LString(6)   | record       | Modification detail.            |
-    +---------+--------------+--------------+---------------------------------+
-    | 61-66   | LString(6)   | record       | Modification detail.            |
-    +---------+--------------+--------------+---------------------------------+
+    +---------+--------------+-------------------+---------------------------------+
+    | COLUMNS | DATA TYPE    | FIELD             | DEFINITION                      |
+    +=========+==============+===================+=================================+
+    | 1-6     | Record name  | "REVDAT"          |                                 |
+    +---------+--------------+-------------------+---------------------------------+
+    | 8-10    | Integer      | modification_num  | Modification number.            |
+    +---------+--------------+-------------------+---------------------------------+
+    | 11-12   | Continuation | continuation      | Allows concatenation of         |
+    |         |              |                   | multiple records.               |
+    +---------+--------------+-------------------+---------------------------------+
+    | 14-22   | Date         | modification_date | Date of modification (or        |
+    |         |              |                   | for new entries) in DD-MMM-YY   |
+    |         |              |                   | format. This is not repeated on |
+    |         |              |                   | continued lines.                |
+    +---------+--------------+-------------------+---------------------------------+
+    | 24-27   | IDCode       | modification_id   | ID code of this entry. This is  |
+    |         |              |                   | not repeated on continuation    |
+    |         |              |                   | lines.                          |
+    +---------+--------------+-------------------+---------------------------------+
+    | 32      | Integer      | modification_type | An integer identifying the type |
+    |         |              |                   | of modification. For all        |
+    |         |              |                   | revisions, the modification     |
+    |         |              |                   | type is listed as 1             |
+    +---------+--------------+-------------------+---------------------------------+
+    | 40-45   | LString(6)   | record            | Modification detail.            |
+    +---------+--------------+-------------------+---------------------------------+
+    | 47-52   | LString(6)   | record            | Modification detail.            |
+    +---------+--------------+-------------------+---------------------------------+
+    | 54-59   | LString(6)   | record            | Modification detail.            |
+    +---------+--------------+-------------------+---------------------------------+
+    | 61-66   | LString(6)   | record            | Modification detail.            |
+    +---------+--------------+-------------------+---------------------------------+
     """
 
     def __init__(self):
@@ -648,7 +648,20 @@ class RevisionData(BaseRecord):
 
     def __init__(self):
         super().__init__()
-        self.revisions = OrderedDict()
+        self._revisions = OrderedDict()
+
+    @property
+    def revisions(self) -> OrderedDict:
+        """Get revisions.
+
+        :returns: dictionary with modifiction numbers as keys and
+            :class:`Revision` objects as values
+        """
+        return self._revisions
+
+    @revisions.setter
+    def revisions(self, value):
+        self._revisions = value
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -657,15 +670,15 @@ class RevisionData(BaseRecord):
         """
         super().parse_line(line)
         mod_num = int(line[7:10].strip())
-        revision = self.revisions.get(mod_num, Revision())
+        revision = self._revisions.get(mod_num, Revision())
         revision.parse_line(line)
-        self.revisions[mod_num] = revision
+        self._revisions[mod_num] = revision
 
     def __str__(self):
         strings = []
         curr_mod = None
         continuation = 1
-        for mod_num, revision in self.revisions.items():
+        for mod_num, revision in self._revisions.items():
             string = str(revision)
             if mod_num == curr_mod:
                 continuation += 1
@@ -683,67 +696,66 @@ class Site(BaseRecord):
     The SITE records supply the identification of groups comprising
     important sites in the macromolecule.
 
-    +---------+--------------+----------+-------------------------------------+
-    | COLUMNS | DATA TYPE    | FIELD    | DEFINITION                          |
-    +=========+==============+==========+=====================================+
-    | 1-6     | Record name  | "SITE  " |                                     |
-    +---------+--------------+----------+-------------------------------------+
-    | 8-10    | Integer      | seqNum   | Sequence number.                    |
-    +---------+--------------+----------+-------------------------------------+
-    | 12-14   | LString(3)   | siteID   | Site name.                          |
-    +---------+--------------+----------+-------------------------------------+
-    | 16-17   | Integer      | numRes   | Number of residues that compose the |
-    +---------+--------------+----------+-------------------------------------+
-    |         |              |          | site.                               |
-    +---------+--------------+----------+-------------------------------------+
-    | 19-21   | Residue name | resName1 | Residue name for first residue that |
-    |         |              |          | creates the site.                   |
-    +---------+--------------+----------+-------------------------------------+
-    | 23      | Character    | chainID1 | Chain identifier for first residue  |
-    |         |              |          | of site.                            |
-    +---------+--------------+----------+-------------------------------------+
-    | 24-27   | Integer      | seq1     | Residue sequence number for first   |
-    |         |              |          | residue of the site.                |
-    +---------+--------------+----------+-------------------------------------+
-    | 28      | AChar        | iCode1   | Insertion code for first residue of |
-    |         |              |          | the site.                           |
-    +---------+--------------+----------+-------------------------------------+
-    | 30-32   | Residue name | resName2 | Residue name for second residue     |
-    |         |              |          | that creates the site.              |
-    +---------+--------------+----------+-------------------------------------+
-    | 34      | Character    | chainID2 | Chain identifier for second residue |
-    |         |              |          | of the site.                        |
-    +---------+--------------+----------+-------------------------------------+
-    | 35-38   | Integer      | seq2     | Residue sequence number for second  |
-    |         |              |          | residue of the site.                |
-    +---------+--------------+----------+-------------------------------------+
-    | 39      | AChar        | iCode2   | Insertion code for second residue   |
-    |         |              |          | of the site.                        |
-    +---------+--------------+----------+-------------------------------------+
-    | 41-43   | Residue name | resName3 | Residue name for third residue that |
-    |         |              |          | creates the site.                   |
-    +---------+--------------+----------+-------------------------------------+
-    | 45      | Character    | chainID3 | Chain identifier for third residue  |
-    |         |              |          | of the site.                        |
-    +---------+--------------+----------+-------------------------------------+
-    | 46-49   | Integer      | seq3     | Residue sequence number for third   |
-    |         |              |          | residue of the site.                |
-    +---------+--------------+----------+-------------------------------------+
-    | 50      | AChar        | iCode3   | Insertion code for third residue of |
-    |         |              |          | the site.                           |
-    +---------+--------------+----------+-------------------------------------+
-    | 52-54   | Residue name | resName4 | Residue name for fourth residue     |
-    |         |              |          | that creates the site.              |
-    +---------+--------------+----------+-------------------------------------+
-    | 56      | Character    | chainID4 | Chain identifier for fourth residue |
-    |         |              |          | of the site.                        |
-    +---------+--------------+----------+-------------------------------------+
-    | 57-60   | Integer      | seq4     | Residue sequence number for fourth  |
-    |         |              |          | residue of the site.                |
-    +---------+--------------+----------+-------------------------------------+
-    | 61      | AChar        | iCode4   | Insertion code for fourth residue   |
-    |         |              |          | of the site.                        |
-    +---------+--------------+----------+-------------------------------------+
+    +---------+--------------+-----------+------------------------------------+
+    | COLUMNS | DATA TYPE    | FIELD     | DEFINITION                         |
+    +=========+==============+===========+====================================+
+    | 1-6     | Record name  | "SITE  "  |                                    |
+    +---------+--------------+-----------+------------------------------------+
+    | 8-10    | Integer      | seq_num   | Sequence number.                   |
+    +---------+--------------+-----------+------------------------------------+
+    | 12-14   | LString(3)   | site_id   | Site name.                         |
+    +---------+--------------+-----------+------------------------------------+
+    | 16-17   | Integer      | num_res   | Number of residues that compose    |
+    |         |              |           | the site.                          |
+    +---------+--------------+-----------+------------------------------------+
+    | 19-21   | Residue name | res_name1 | Residue name for first residue     |
+    |         |              |           | that creates the site.             |
+    +---------+--------------+-----------+------------------------------------+
+    | 23      | Character    | chain_id1 | Chain identifier for first residue |
+    |         |              |           | of site.                           |
+    +---------+--------------+-----------+------------------------------------+
+    | 24-27   | Integer      | seq1      | Residue sequence number for first  |
+    |         |              |           | residue of the site.               |
+    +---------+--------------+-----------+------------------------------------+
+    | 28      | AChar        | ins_code1 | Insertion code for first residue   |
+    |         |              |           | of the site.                       |
+    +---------+--------------+-----------+------------------------------------+
+    | 30-32   | Residue name | res_name2 | Residue name for second residue    |
+    |         |              |           | that creates the site.             |
+    +---------+--------------+-----------+------------------------------------+
+    | 34      | Character    | chain_id2 | Chain identifier for second        |
+    |         |              |           | residue of the site.               |
+    +---------+--------------+-----------+------------------------------------+
+    | 35-38   | Integer      | seq2      | Residue sequence number for second |
+    |         |              |           | residue of the site.               |
+    +---------+--------------+-----------+------------------------------------+
+    | 39      | AChar        | ins_code2 | Insertion code for second residue  |
+    |         |              |           | of the site.                       |
+    +---------+--------------+-----------+------------------------------------+
+    | 41-43   | Residue name | res_name3 | Residue name for third residue     |
+    |         |              |           | that creates the site.             |
+    +---------+--------------+-----------+------------------------------------+
+    | 45      | Character    | chain_id3 | Chain identifier for third residue |
+    |         |              |           | of the site.                       |
+    +---------+--------------+-----------+------------------------------------+
+    | 46-49   | Integer      | seq3      | Residue sequence number for third  |
+    |         |              |           | residue of the site.               |
+    +---------+--------------+-----------+------------------------------------+
+    | 50      | AChar        | ins_code3 | Insertion code for third residue   |
+    |         |              |           | of the site.                       |
+    +---------+--------------+-----------+------------------------------------+
+    | 52-54   | Residue name | res_name4 | Residue name for fourth residue    |
+    |         |              |           | that creates the site.             |
+    +---------+--------------+-----------+------------------------------------+
+    | 56      | Character    | chain_id4 | Chain identifier for fourth        |
+    |         |              |           | residue of the site.               |
+    +---------+--------------+-----------+------------------------------------+
+    | 57-60   | Integer      | seq4      | Residue sequence number for fourth |
+    |         |              |           | residue of the site.               |
+    +---------+--------------+-----------+------------------------------------+
+    | 61      | AChar        | ins_code4 | Insertion code for fourth residue  |
+    |         |              |           | of the site.                       |
+    +---------+--------------+-----------+------------------------------------+
     """
 
     def __init__(self):
@@ -821,13 +833,13 @@ class NumModels(BaseRecord):
 
     The NUMMDL record indicates total number of models in a PDB entry.
 
-    +---------+-------------+-------------+-----------------------------------+
-    | COLUMNS | DATA TYPE   | FIELD       | DEFINITION                        |
-    +=========+=============+=============+===================================+
-    | 1-6     | Record name | "NUMMDL"    |                                   |
-    +---------+-------------+-------------+-----------------------------------+
-    | 11-14   | Integer     | modelNumber | Number of models.                 |
-    +---------+-------------+-------------+-----------------------------------+
+    +---------+-------------+--------------+----------------------------------+
+    | COLUMNS | DATA TYPE   | FIELD        | DEFINITION                       |
+    +=========+=============+==============+==================================+
+    | 1-6     | Record name | "NUMMDL"     |                                  |
+    +---------+-------------+--------------+----------------------------------+
+    | 11-14   | Integer     | model_number | Number of models.                |
+    +---------+-------------+--------------+----------------------------------+
     """
 
     def __init__(self):
@@ -863,7 +875,7 @@ class Source(BaseRecord):
     | 8-10    | Continuation  | continuation | Allows concatenation of        |
     |         |               |              | multiple records.              |
     +---------+---------------+--------------+--------------------------------+
-    | 11-79   | Specification | srcName      | Identifies the source of the   |
+    | 11-79   | Specification | source       | Identifies the source of the   |
     |         | List          |              | macromolecule in a token:      |
     |         |               |              | value format.                  |
     +---------+---------------+--------------+--------------------------------+
@@ -908,33 +920,33 @@ class Split(BaseRecord):
     | 9-10    | Continuation | continuation | Allows concatenation of         |
     |         |              |              | multiple records.               |
     +---------+--------------+--------------+---------------------------------+
-    | 12-15   | IDcode       | idCode       | ID code of related entry.       |
+    | 12-15   | IDcode       | id_codes[0]  | ID code of related entry.       |
     +---------+--------------+--------------+---------------------------------+
-    | 17-20   | IDcode       | idCode       | ID code of related entry.       |
+    | 17-20   | IDcode       | id_codes[1]  | ID code of related entry.       |
     +---------+--------------+--------------+---------------------------------+
-    | 22-25   | IDcode       | idCode       | ID code of related entry.       |
+    | 22-25   | IDcode       | id_codes[2]  | ID code of related entry.       |
     +---------+--------------+--------------+---------------------------------+
-    | 27-30   | IDcode       | idCode       | ID code of related entry.       |
+    | 27-30   | IDcode       | id_codes[3]  | ID code of related entry.       |
     +---------+--------------+--------------+---------------------------------+
-    | 32-35   | IDcode       | idCode       | ID code of related entry.       |
+    | 32-35   | IDcode       | id_codes[4]  | ID code of related entry.       |
     +---------+--------------+--------------+---------------------------------+
-    | 37-40   | IDcode       | idCode       | ID code of related entry.       |
+    | 37-40   | IDcode       | id_codes[5]  | ID code of related entry.       |
     +---------+--------------+--------------+---------------------------------+
-    | 42-45   | IDcode       | idCode       | ID code of related entry.       |
+    | 42-45   | IDcode       | id_codes[6]  | ID code of related entry.       |
     +---------+--------------+--------------+---------------------------------+
-    | 47-50   | IDcode       | idCode       | ID code of related entry.       |
+    | 47-50   | IDcode       | id_codes[7]  | ID code of related entry.       |
     +---------+--------------+--------------+---------------------------------+
-    | 52-55   | IDcode       | idCode       | ID code of related entry.       |
+    | 52-55   | IDcode       | id_codes[8]  | ID code of related entry.       |
     +---------+--------------+--------------+---------------------------------+
-    | 57-60   | IDcode       | idCode       | ID code of related entry.       |
+    | 57-60   | IDcode       | id_codes[9]  | ID code of related entry.       |
     +---------+--------------+--------------+---------------------------------+
-    | 62-65   | IDcode       | idCode       | ID code of related entry.       |
+    | 62-65   | IDcode       | id_codes[10] | ID code of related entry.       |
     +---------+--------------+--------------+---------------------------------+
-    | 67-70   | IDcode       | idCode       | ID code of related entry.       |
+    | 67-70   | IDcode       | id_codes[11] | ID code of related entry.       |
     +---------+--------------+--------------+---------------------------------+
-    | 72-75   | IDcode       | idCode       | ID code of related entry.       |
+    | 72-75   | IDcode       | id_codes[12] | ID code of related entry.       |
     +---------+--------------+--------------+---------------------------------+
-    | 77-80   | IDcode       | idCode       | ID code of related entry.       |
+    | 77-80   | IDcode       | id_codes[13] | ID code of related entry.       |
     +---------+--------------+--------------+---------------------------------+
     """
 
@@ -982,39 +994,39 @@ class Supersedes(BaseRecord):
     release set. One entry may replace many. It is PDB policy that only the
     principal investigator of a structure has the authority to withdraw it.
 
-    +---------+--------------+--------------+---------------------------------+
-    | COLUMNS | DATA TYPE    | FIELD        | DEFINITION                      |
-    +=========+==============+==============+=================================+
-    | 1-6     | Record name  | "SPRSDE"     |                                 |
-    +---------+--------------+--------------+---------------------------------+
-    | 9-10    | Continuation | continuation | Allows for multiple ID codes.   |
-    +---------+--------------+--------------+---------------------------------+
-    | 12-20   | Date         | sprsdeDate   | Date this entry superseded the  |
-    |         |              |              | listed entries. This field is   |
-    |         |              |              | not copied on continuations.    |
-    +---------+--------------+--------------+---------------------------------+
-    | 22-25   | IDcode       | idCode       | ID code of this entry. This     |
-    |         |              |              | field is not copied on          |
-    |         |              |              | continuations.                  |
-    +---------+--------------+--------------+---------------------------------+
-    | 32-35   | IDcode       | sIdCode      | ID code of a superseded entry.  |
-    +---------+--------------+--------------+---------------------------------+
-    | 37-40   | IDcode       | sIdCode      | ID code of a superseded entry.  |
-    +---------+--------------+--------------+---------------------------------+
-    | 42-45   | IDcode       | sIdCode      | ID code of a superseded entry.  |
-    +---------+--------------+--------------+---------------------------------+
-    | 47-50   | IDcode       | sIdCode      | ID code of a superseded entry.  |
-    +---------+--------------+--------------+---------------------------------+
-    | 52-55   | IDcode       | sIdCode      | ID code of a superseded entry.  |
-    +---------+--------------+--------------+---------------------------------+
-    | 57-60   | IDcode       | sIdCode      | ID code of a superseded entry.  |
-    +---------+--------------+--------------+---------------------------------+
-    | 62-65   | IDcode       | sIdCode      | ID code of a superseded entry.  |
-    +---------+--------------+--------------+---------------------------------+
-    | 67-70   | IDcode       | sIdCode      | ID code of a superseded entry.  |
-    +---------+--------------+--------------+---------------------------------+
-    | 72-75   | IDcode       | sIdCode      | ID code of a superseded entry.  |
-    +---------+--------------+--------------+---------------------------------+
+    +---------+--------------+----------------+-------------------------------+
+    | COLUMNS | DATA TYPE    | FIELD          | DEFINITION                    |
+    +=========+==============+================+===============================+
+    | 1-6     | Record name  | "SPRSDE"       |                               |
+    +---------+--------------+----------------+-------------------------------+
+    | 9-10    | Continuation | continuation   | Allows for multiple ID codes. |
+    +---------+--------------+----------------+-------------------------------+
+    | 12-20   | Date         | super_date     | Date entry superseded the     |
+    |         |              |                | listed entries. This field is |
+    |         |              |                | not copied on continuations.  |
+    +---------+--------------+----------------+-------------------------------+
+    | 22-25   | IDcode       | id_code        | ID code of this entry. This   |
+    |         |              |                | field is not copied on        |
+    |         |              |                | continuations.                |
+    +---------+--------------+----------------+-------------------------------+
+    | 32-35   | IDcode       | super_id_codes | ID code of superseded entry.  |
+    +---------+--------------+----------------+-------------------------------+
+    | 37-40   | IDcode       | super_id_codes | ID code of superseded entry.  |
+    +---------+--------------+----------------+-------------------------------+
+    | 42-45   | IDcode       | super_id_codes | ID code of superseded entry.  |
+    +---------+--------------+----------------+-------------------------------+
+    | 47-50   | IDcode       | super_id_codes | ID code of superseded entry.  |
+    +---------+--------------+----------------+-------------------------------+
+    | 52-55   | IDcode       | super_id_codes | ID code of superseded entry.  |
+    +---------+--------------+----------------+-------------------------------+
+    | 57-60   | IDcode       | super_id_codes | ID code of superseded entry.  |
+    +---------+--------------+----------------+-------------------------------+
+    | 62-65   | IDcode       | super_id_codes | ID code of superseded entry.  |
+    +---------+--------------+----------------+-------------------------------+
+    | 67-70   | IDcode       | super_id_codes | ID code of superseded entry.  |
+    +---------+--------------+----------------+-------------------------------+
+    | 72-75   | IDcode       | super_id_codes | ID code of superseded entry.  |
+    +---------+--------------+----------------+-------------------------------+
     """
 
     def __init__(self):

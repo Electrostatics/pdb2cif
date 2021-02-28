@@ -4,7 +4,6 @@
 .. codeauthor::  Yong Huang
 .. codeauthor::  Nathan Baker
 """
-from itertools import chain
 import logging
 from collections import OrderedDict
 from .general import BaseRecord, grouper
@@ -19,48 +18,49 @@ class DatabaseReference(BaseRecord):
     The DBREF record provides cross-reference links between PDB sequences
     (what appears in SEQRES record) and a corresponding database sequence.
 
-    +---------+-------------+-------------+-----------------------------------+
-    | COLUMNS | DATA TYPE   | FIELD       | DEFINITION                        |
-    +=========+=============+=============+===================================+
-    | 1-6     | Record name | "DBREF "    |                                   |
-    +---------+-------------+-------------+-----------------------------------+
-    | 8-11    | IDcode      | idCode      | ID code of this entry.            |
-    +---------+-------------+-------------+-----------------------------------+
-    | 13      | Character   | chainID     | Chain identifier.                 |
-    +---------+-------------+-------------+-----------------------------------+
-    | 15-18   | Integer     | seqBegin    | Initial sequence number of the    |
-    |         |             |             | PDB sequence segment.             |
-    +---------+-------------+-------------+-----------------------------------+
-    | 19      | AChar       | insertBegin | Initial insertion code of the     |
-    |         |             |             | PDB sequence segment.             |
-    +---------+-------------+-------------+-----------------------------------+
-    | 21-24   | Integer     | seqEnd      | Ending sequence number of the PDB |
-    |         |             |             | sequence segment.                 |
-    +---------+-------------+-------------+-----------------------------------+
-    | 25      | AChar       | insertEnd   | Ending insertion code of the PDB  |
-    |         |             |             | sequence segment.                 |
-    +---------+-------------+-------------+-----------------------------------+
-    | 27-32   | LString     | database    | Sequence database name.           |
-    +---------+-------------+-------------+-----------------------------------+
-    | 34-41   | LString     | dbAccession | Sequence database accession code. |
-    +---------+-------------+-------------+-----------------------------------+
-    | 43-54   | LString     | dbIdCode    | Sequence database identification  |
-    |         |             |             | code.                             |
-    +---------+-------------+-------------+-----------------------------------+
-    | 56-60   | Integer     | dbseqBegin  | Initial sequence number of the    |
-    |         |             |             | database seqment.                 |
-    +---------+-------------+-------------+-----------------------------------+
-    | 61      | AChar       | idbnsBeg    | Insertion code of initial residue |
-    |         |             |             | the segment, if PDB is the        |
-    |         |             |             | reference.                        |
-    +---------+-------------+-------------+-----------------------------------+
-    | 63-67   | Integer     | dbseqEnd    | Ending sequence number of the     |
-    |         |             |             | segment.                          |
-    +---------+-------------+-------------+-----------------------------------+
-    | 68      | AChar       | dbinsEnd    | Insertion code of the ending of   |
-    |         |             |             | the segment, if PDB is the        |
-    |         |             |             | reference.                        |
-    +---------+-------------+-------------+-----------------------------------+
+    +---------+-------------+--------------------+-----------------------------+
+    | COLUMNS | DATA TYPE   | FIELD              | DEFINITION                  |
+    +=========+=============+====================+=============================+
+    | 1-6     | Record name | "DBREF "           |                             |
+    +---------+-------------+--------------------+-----------------------------+
+    | 8-11    | IDcode      | id_code            | ID code of this entry.      |
+    +---------+-------------+--------------------+-----------------------------+
+    | 13      | Character   | chain_id           | Chain identifier.           |
+    +---------+-------------+--------------------+-----------------------------+
+    | 15-18   | Integer     | seq_begin          | Initial sequence number of  |
+    |         |             |                    | PDB sequence segment.       |
+    +---------+-------------+--------------------+-----------------------------+
+    | 19      | AChar       | ins_begin          | Initial insertion code of   |
+    |         |             |                    | PDB sequence segment.       |
+    +---------+-------------+--------------------+-----------------------------+
+    | 21-24   | Integer     | seq_end            | Ending sequence number of   |
+    |         |             |                    | PDB sequence segment.       |
+    +---------+-------------+--------------------+-----------------------------+
+    | 25      | AChar       | ins_end            | Ending insertion code of    |
+    |         |             |                    | PDB sequence segment.       |
+    +---------+-------------+--------------------+-----------------------------+
+    | 27-32   | LString     | database           | Sequence database name.     |
+    +---------+-------------+--------------------+-----------------------------+
+    | 34-41   | LString     | database_accession | Sequence database accession |
+    |         |             |                    | code.                       |
+    +---------+-------------+--------------------+-----------------------------+
+    | 43-54   | LString     | database_id_code   | Sequence database id        |
+    |         |             |                    | code.                       |
+    +---------+-------------+--------------------+-----------------------------+
+    | 56-60   | Integer     | database_seq_begin | Initial sequence number of  |
+    |         |             |                    | database seqment.           |
+    +---------+-------------+--------------------+-----------------------------+
+    | 61      | AChar       | database_ins_begin | Insertion code of initial   |
+    |         |             |                    | residue segment, if PDB is  |
+    |         |             |                    | reference.                  |
+    +---------+-------------+--------------------+-----------------------------+
+    | 63-67   | Integer     | database_seq_end   | Ending sequence number of   |
+    |         |             |                    | segment.                    |
+    +---------+-------------+--------------------+-----------------------------+
+    | 68      | AChar       | database_ins_end   | Insertion code of the       |
+    |         |             |                    | the segment end, if PDB is  |
+    |         |             |                    | reference.                  |
+    +---------+-------------+--------------------+-----------------------------+
     """
 
     def __init__(self):
@@ -124,27 +124,27 @@ class DatabaseReference1(BaseRecord):
     +=========+=============+=============+===================================+
     | 1-6     | Record name | "DBREF1"    |                                   |
     +---------+-------------+-------------+-----------------------------------+
-    | 8-11    | IDcode      | idCode      | ID code of this entry.            |
+    | 8-11    | IDcode      | id_code     | ID code of this entry.            |
     +---------+-------------+-------------+-----------------------------------+
-    | 13      | Character   | chainID     | Chain identifier.                 |
+    | 13      | Character   | chain_id    | Chain identifier.                 |
     +---------+-------------+-------------+-----------------------------------+
-    | 15-18   | Integer     | seqBegin    | Initial sequence number of the    |
+    | 15-18   | Integer     | seq_begin   | Initial sequence number of the    |
     |         |             |             | PDB sequence segment, right       |
     |         |             |             | justified.                        |
     +---------+-------------+-------------+-----------------------------------+
-    | 19      | AChar       | insertBegin | Initial insertion code of the PDB |
+    | 19      | AChar       | ins_begin   | Initial insertion code of the PDB |
     |         |             |             | sequence segment.                 |
     +---------+-------------+-------------+-----------------------------------+
-    | 21-24   | Integer     | seqEnd      | Ending sequence number of the PDB |
+    | 21-24   | Integer     | seq_end     | Ending sequence number of the PDB |
     |         |             |             | sequence segment, right           |
     |         |             |             | justified.                        |
     +---------+-------------+-------------+-----------------------------------+
-    | 25      | AChar       | insertEnd   | Ending insertion code of the PDB  |
+    | 25      | AChar       | ins_end     | Ending insertion code of the PDB  |
     |         |             |             | sequence segment.                 |
     +---------+-------------+-------------+-----------------------------------+
     | 27-32   | LString     | database    | Sequence database name.           |
     +---------+-------------+-------------+-----------------------------------+
-    | 48-67   | LString     | dbIdCode    | Sequence database identification  |
+    | 48-67   | LString     | db_id_code  | Sequence database identification  |
     |         |             |             | code, left justified.             |
     +---------+-------------+-------------+-----------------------------------+
     """
@@ -158,7 +158,7 @@ class DatabaseReference1(BaseRecord):
         self.seq_end = None
         self.ins_end = None
         self.database = None
-        self.db_ins_code = None
+        self.db_id_code = None
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -173,13 +173,13 @@ class DatabaseReference1(BaseRecord):
         self.seq_end = int(line[20:24])
         self.ins_end = line[24].strip()
         self.database = line[26:32].strip()
-        self.db_ins_code = line[47:67].strip()
+        self.db_id_code = line[47:67].strip()
 
     def __str__(self):
         return (
             f"DBREF1 {self.id_code:4} {self.chain_id:1} {self.seq_begin:4}"
             f"{self.ins_begin:1} {self.seq_end:4}{self.ins_end:1}"
-            f" {self.database:6}               {self.db_ins_code:20}"
+            f" {self.database:6}               {self.db_id_code:20}"
         )
 
 
@@ -192,26 +192,26 @@ class DatabaseReference2(BaseRecord):
     This includes some GenBank sequence numbering (greater than 5 characters)
     and UNIMES accession numbers (greater than 12 characters).
 
-    +---------+-------------+-------------+-----------------------------------+
-    | COLUMNS | DATA TYPE   | FIELD       | DEFINITION                        |
-    +=========+=============+=============+===================================+
-    | 1-6     | Record name | "DBREF2"    |                                   |
-    +---------+-------------+-------------+-----------------------------------+
-    | 8-11    | IDcode      | idCode      | ID code of this entry.            |
-    +---------+-------------+-------------+-----------------------------------+
-    | 13      | Character   | chainID     | Chain identifier.                 |
-    +---------+-------------+-------------+-----------------------------------+
-    | 19-40   | LString     | dbAccession | Sequence database accession code, |
-    |         |             |             | left justified.                   |
-    +---------+-------------+-------------+-----------------------------------+
-    | 46-55   | Integer     | seqBegin    | Initial sequence number of the    |
-    |         |             |             | Database segment, right           |
-    |         |             |             | justified.                        |
-    +---------+-------------+-------------+-----------------------------------+
-    | 58-67   | Integer     | seqEnd      | Ending sequence number of the     |
-    |         |             |             | Database segment, right           |
-    |         |             |             | justified.                        |
-    +---------+-------------+-------------+-----------------------------------+
+    +---------+-------------+--------------+----------------------------------+
+    | COLUMNS | DATA TYPE   | FIELD        | DEFINITION                       |
+    +=========+=============+==============+==================================+
+    | 1-6     | Record name | "DBREF2"     |                                  |
+    +---------+-------------+--------------+----------------------------------+
+    | 8-11    | IDcode      | id_code      | ID code of this entry.           |
+    +---------+-------------+--------------+----------------------------------+
+    | 13      | Character   | chain_id     | Chain identifier.                |
+    +---------+-------------+--------------+----------------------------------+
+    | 19-40   | LString     | db_accession | Sequence database accession code |
+    |         |             |              | left justified.                  |
+    +---------+-------------+--------------+----------------------------------+
+    | 46-55   | Integer     | seq_begin    | Initial sequence number of the   |
+    |         |             |              | Database segment, right          |
+    |         |             |              | justified.                       |
+    +---------+-------------+--------------+----------------------------------+
+    | 58-67   | Integer     | seq_end      | Ending sequence number of the    |
+    |         |             |              | Database segment, right          |
+    |         |             |              | justified.                       |
+    +---------+-------------+--------------+----------------------------------+
     """
 
     def __init__(self):
@@ -250,26 +250,26 @@ class ModifiedResidue(BaseRecord):
     Included are a mapping between residue names given in a PDB entry and
     standard residues.
 
-    +---------+--------------+----------+-------------------------------------+
-    | COLUMNS | DATA TYPE    | FIELD    | DEFINITION                          |
-    +=========+==============+==========+=====================================+
-    | 1-6     | Record name  | "MODRES" |                                     |
-    +---------+--------------+----------+-------------------------------------+
-    | 8-11    | IDcode       | idCode   | ID code of this entry.              |
-    +---------+--------------+----------+-------------------------------------+
-    | 13-15   | Residue name | resName  | Residue name used in this entry.    |
-    +---------+--------------+----------+-------------------------------------+
-    | 17      | Character    | chainID  | Chain identifier.                   |
-    +---------+--------------+----------+-------------------------------------+
-    | 19-22   | Integer      | seqNum   | Sequence number.                    |
-    +---------+--------------+----------+-------------------------------------+
-    | 23      | AChar        | iCode    | Insertion code.                     |
-    +---------+--------------+----------+-------------------------------------+
-    | 25-27   | Residue name | stdRes   | Standard residue name.              |
-    +---------+--------------+----------+-------------------------------------+
-    | 30-70   | String       | comment  | Description of the residue          |
-    |         |              |          | modification.                       |
-    +---------+--------------+----------+-------------------------------------+
+    +---------+--------------+--------------+---------------------------------+
+    | COLUMNS | DATA TYPE    | FIELD        | DEFINITION                      |
+    +=========+==============+==============+=================================+
+    | 1-6     | Record name  | "MODRES"     |                                 |
+    +---------+--------------+--------------+---------------------------------+
+    | 8-11    | IDcode       | id_code      | ID code of this entry.          |
+    +---------+--------------+--------------+---------------------------------+
+    | 13-15   | Residue name | res_name     | Residue name used in this entry |
+    +---------+--------------+--------------+---------------------------------+
+    | 17      | Character    | chain_id     | Chain identifier.               |
+    +---------+--------------+--------------+---------------------------------+
+    | 19-22   | Integer      | seq_num      | Sequence number.                |
+    +---------+--------------+--------------+---------------------------------+
+    | 23      | AChar        | ins_code     | Insertion code.                 |
+    +---------+--------------+--------------+---------------------------------+
+    | 25-27   | Residue name | standard_res | Standard residue name.          |
+    +---------+--------------+--------------+---------------------------------+
+    | 30-70   | String       | comment      | Description of the residue      |
+    |         |              |              | modification.                   |
+    +---------+--------------+--------------+---------------------------------+
     """
 
     def __init__(self):
@@ -320,25 +320,25 @@ class SequenceDifferences(BaseRecord):
     +=========+==============+=============+==================================+
     | 1-6     | Record name  | "SEQADV"    |                                  |
     +---------+--------------+-------------+----------------------------------+
-    | 8-11    | IDcode       | idCode      | ID code of this entry.           |
+    | 8-11    | IDcode       | id_code     | ID code of this entry.           |
     +---------+--------------+-------------+----------------------------------+
-    | 13-15   | Residue name | resName     | Name of the PDB residue in       |
+    | 13-15   | Residue name | res_name    | Name of the PDB residue in       |
     |         |              |             | conflict.                        |
     +---------+--------------+-------------+----------------------------------+
-    | 17      | Character    | chainID     | PDB chain identifier.            |
+    | 17      | Character    | chain_id    | PDB chain identifier.            |
     +---------+--------------+-------------+----------------------------------+
-    | 19-22   | Integer      | seqNum      | PDB sequence number.             |
+    | 19-22   | Integer      | seq_num     | PDB sequence number.             |
     +---------+--------------+-------------+----------------------------------+
-    | 23      | AChar        | iCode       | PDB insertion code.              |
+    | 23      | AChar        | ins_code    | PDB insertion code.              |
     +---------+--------------+-------------+----------------------------------+
     | 25-28   | LString      | database    |                                  |
     +---------+--------------+-------------+----------------------------------+
-    | 30-38   | LString      | dbAccession | Sequence database accession      |
+    | 30-38   | LString      | db_id_code  | Sequence database accession      |
     |         |              |             | number.                          |
     +---------+--------------+-------------+----------------------------------+
-    | 40-42   | Residue name | dbRes       | Sequence database residue name.  |
+    | 40-42   | Residue name | db_res      | Sequence database residue name.  |
     +---------+--------------+-------------+----------------------------------+
-    | 44-48   | Integer      | dbSeq       | Sequence database sequence       |
+    | 44-48   | Integer      | db_seq      | Sequence database sequence       |
     |         |              |             | number.                          |
     +---------+--------------+-------------+----------------------------------+
     | 50-70   | LString      | conflict    | Conflict comment.                |
@@ -445,8 +445,21 @@ class SequenceResidues(BaseRecord):
 
     def __init__(self):
         super().__init__()
-        self.residues = OrderedDict()
+        self._residues = OrderedDict()
         self.num_residues = {}
+
+    @property
+    def residues(self) -> dict:
+        """Dictionary of residues indexed by chain id.
+
+        :returns: dictionary with chain IDs as keys and lists of residue names
+            as values.
+        """
+        return self._residues
+
+    @residues.setter
+    def residues(self, value):
+        self._residues = value
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -455,13 +468,13 @@ class SequenceResidues(BaseRecord):
         """
         super().parse_line(line)
         chain_id = line[11].strip()
-        if chain_id not in self.residues:
-            self.residues[chain_id] = []
-        self.num_residues [chain_id]= int(line[13:17])
+        if chain_id not in self._residues:
+            self._residues[chain_id] = []
+        self.num_residues[chain_id] = int(line[13:17])
         start = 19
         end = 22
         while True:
-            self.residues[chain_id].append(line[start:end].strip())
+            self._residues[chain_id].append(line[start:end].strip())
             start += 4
             end += 4
             if start > 68:
@@ -469,11 +482,11 @@ class SequenceResidues(BaseRecord):
 
     def num_chains(self) -> int:
         """Number of chains in sequence."""
-        return len(self.residues)
+        return len(self._residues)
 
     def __str__(self):
         strings = []
-        for chain_id, residues in self.residues.items():
+        for chain_id, residues in self._residues.items():
             for ichunk, chunk in enumerate(grouper(residues, 13)):
                 serial_num = ichunk + 1
                 string = f"SEQRES {serial_num:>3} {chain_id:1} "
