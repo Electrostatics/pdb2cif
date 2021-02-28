@@ -972,7 +972,7 @@ class Split(BaseRecord):
 
     def __str__(self):
         strings = []
-        for ichunk, chunk in grouper(self.id_codes, 14):
+        for ichunk, chunk in enumerate(grouper(self.id_codes, 14)):
             string = ""
             continuation = ichunk + 1
             if continuation > 1:
@@ -1054,7 +1054,7 @@ class Supersedes(BaseRecord):
 
     def __str__(self):
         strings = []
-        for ichunk, chunk in grouper(self.super_id_codes, 8):
+        for ichunk, chunk in enumerate(grouper(self.super_id_codes, 8)):
             continuation = ichunk + 1
             if continuation > 1:
                 string = f"SPRSDE  {continuation:>2}                    "
