@@ -4,6 +4,11 @@
 Change log
 ==========
 
+Current version
+===============
+
+* Added additional test cases:  OBSLTE
+
 1.0.0
 =====
 

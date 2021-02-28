@@ -461,7 +461,7 @@ class Obsolete(BaseRecord):
             else:
                 string = "OBSLTE    "
             string += (
-                f" {date_format(self.replace_date):9} {self.id_code}       "
+                f" {date_format(self.replace_date):9} {self.id_code}     "
             )
             for code in chunk:
                 if code is not None:
