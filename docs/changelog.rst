@@ -4,10 +4,10 @@
 Change log
 ==========
 
-Current version
-===============
+1.1.0
+=====
 
-* Added additional test cases:  OBSLTE
+* Added additional test cases covering OBSLTE (3WXV), SPRSDE (6KS0) and fixed associated bugs.
 
 1.0.0
 =====
