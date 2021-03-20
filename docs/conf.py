@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'old_pdb'
+project = 'pdb2cif'
 author = 'Nathan Baker'
 
 

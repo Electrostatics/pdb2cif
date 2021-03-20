@@ -4,8 +4,8 @@
 API reference
 =============
 
-.. currentmodule:: old_pdb
-.. module:: old_pdb
+.. currentmodule:: pdb2cif
+.. module:: pdb2cif
 
 
 .. Note::

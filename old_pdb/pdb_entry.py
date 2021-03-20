@@ -6,9 +6,9 @@ Contents Guide: Atomic Coordinate Entry Format Description, Version 3.3
 
 .. codeauthor::  Nathan Baker
 """
-from old_pdb.primary import DatabaseReference
-from old_pdb.secondary import Helix
-from old_pdb.heterogen import HeterogenSynonym
+from pdb2cif.primary import DatabaseReference
+from pdb2cif.secondary import Helix
+from pdb2cif.heterogen import HeterogenSynonym
 import logging
 from . import annotation, primary, heterogen, secondary, coordinates
 from . import crystallography, bookkeeping

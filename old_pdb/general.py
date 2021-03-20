@@ -78,5 +78,21 @@ class BaseRecord:
         if line is not None:
             self.original_text.append(line.rstrip("\r\n"))
 
+    def parse_cif(self, container):
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        """
+        raise NotImplementedError("BaseRecord does not implement parse_cif.")
+
+    def to_cif(self, container):
+        """Add information about this record to CIF container.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            augment
+        """
+        raise NotImplementedError("BaseRecord does not implement to_cif.")
+
     def __str__(self):
         raise NotImplementedError("BaseRecord does not implement __str__.")

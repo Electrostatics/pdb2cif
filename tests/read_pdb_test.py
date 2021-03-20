@@ -2,7 +2,7 @@
 import logging
 import pytest
 from common import get_pdb, TEST_DATA
-from old_pdb.pdb_entry import Entry
+from pdb2cif.pdb_entry import Entry
 
 
 _LOGGER = logging.getLogger(__name__)

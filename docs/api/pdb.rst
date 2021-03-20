@@ -10,7 +10,7 @@ PDB entry top-level class
 :mod:`pdb_entry` module
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: old_pdb.pdb_entry
+.. automodule:: pdb2cif.pdb_entry
    :members:
    :undoc-members:
 
@@ -22,7 +22,7 @@ PDB records
 :mod:`annotation` module
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: old_pdb.annotation
+.. automodule:: pdb2cif.annotation
    :members:
    :undoc-members:
 
@@ -30,7 +30,7 @@ PDB records
 :mod:`primary` module
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: old_pdb.primary
+.. automodule:: pdb2cif.primary
    :members:
    :undoc-members:
 
@@ -38,7 +38,7 @@ PDB records
 :mod:`heterogen` module
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: old_pdb.heterogen
+.. automodule:: pdb2cif.heterogen
    :members:
    :undoc-members:
 
@@ -46,7 +46,7 @@ PDB records
 :mod:`secondary` module
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: old_pdb.secondary
+.. automodule:: pdb2cif.secondary
    :members:
    :undoc-members:
 
@@ -54,7 +54,7 @@ PDB records
 :mod:`crystallography` module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: old_pdb.crystallography
+.. automodule:: pdb2cif.crystallography
    :members:
    :undoc-members:
 
@@ -62,7 +62,7 @@ PDB records
 :mod:`coordinates` module
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: old_pdb.coordinates
+.. automodule:: pdb2cif.coordinates
    :members:
    :undoc-members:
 
@@ -70,6 +70,6 @@ PDB records
 :mod:`bookkeeping` module
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: old_pdb.bookkeeping
+.. automodule:: pdb2cif.bookkeeping
    :members:
    :undoc-members:

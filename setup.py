@@ -3,14 +3,15 @@ import setuptools
 
 
 setuptools.setup(
-    name="old_pdb",
+    name="pdb2cif",
     version="1.1.0",
     description=(
         "This code reads and writes the old Protein Data Bank format."
     ),
     long_description=(
         "This code reads and writes the old PDB format "
-        "(https://www.wwpdb.org/documentation/file-format-content/format33/v3.3.html)."
+        "(https://www.wwpdb.org/documentation/file-format-content/format33/v3.3.html) "
+        "and allows conversion to/from mmCIF format (https://mmcif.wwpdb.org/)."
     ),
     python_requires=">=3.8",
     license="CC0-1.0",

@@ -1,9 +1,9 @@
-.. old_pdb documentation master file, created by
+.. pdb2cif documentation master file, created by
    sphinx-quickstart on Sun Feb 21 19:43:25 2021.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-old_pdb
+pdb2cif
 =======
 
 This code reads and writes the `old PDB format <https://www.wwpdb.org/documentation/file-format-content/format33/v3.3.html>`_.
