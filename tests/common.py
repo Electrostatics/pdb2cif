@@ -27,3 +27,17 @@ def get_pdb(pdb_id):
         return get_structure(pdb_id, "PDB")
     else:
         return open(pdb_path, "rt", encoding="utf8")
+
+
+def get_cif(pdb_id):
+    """Get CIF file from local data or remotely.
+
+    :param str pdb_id:  4-character PDB ID
+    :returns:  file object ready for reading
+    """
+    pdb_path = DATA_DIR / f"{pdb_id.lower()}.cif"
+    if not pdb_path.exists():
+        _LOGGER.warning(f"Fetching {pdb_id} remotely.")
+        return get_structure(pdb_id, "CIF")
+    else:
+        return open(pdb_path, "rt", encoding="utf8")

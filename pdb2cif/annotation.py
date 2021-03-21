@@ -43,6 +43,17 @@ class Author(BaseRecord):
         super().parse_line(line)
         self.author_list.append(line[10:79].strip())
 
+    def parse_cif(self, container):
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        """
+        cif_obj = container.get_object("audit_author")
+        raise NotImplementedError()
+
+
+
     def __str__(self):
         strings = []
         for iline, line in enumerate(self.author_list):
