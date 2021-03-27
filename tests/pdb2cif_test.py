@@ -24,18 +24,16 @@ def test_pdb(pdb_id):
     for iline in range(len(new_strings)):
         old_line = old_strings[iline]
         new_line = new_strings[iline]
-        diff = list(
-            difflib.unified_diff([old_line], [new_line])
-        )
+        diff = list(difflib.unified_diff([old_line], [new_line]))
         if len(list(diff)) > 0:
             diff_string = "\n".join(diff)
-            old_lines = "\n".join(old_strings[iline-1:iline+2])
-            new_lines = "\n".join(new_strings[iline-1:iline+2])
+            old_lines = "\n".join(old_strings[iline - 1 : iline + 2])
+            new_lines = "\n".join(new_strings[iline - 1 : iline + 2])
             err = "\n".join(
                 [
                     f"Difference in text output:\n{diff_string}",
                     f"Offending line:\n{REF_LINE}\n{new_lines}",
-                    f"Line should be:\n{REF_LINE}\n{old_lines}"
+                    f"Line should be:\n{REF_LINE}\n{old_lines}",
                 ]
             )
             _LOGGER.error(err)

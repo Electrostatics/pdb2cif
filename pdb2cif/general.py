@@ -7,6 +7,7 @@
 import logging
 from datetime import datetime
 from itertools import zip_longest
+from pandas import DataFrame
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -64,6 +65,19 @@ def atom_format(record) -> str:
     return f" {record.name:<3}"[:4]
 
 
+def cif_df(cif_object) -> DataFrame:
+    """Convert a CIF object to a DataFrame.
+
+    :param :class:`pdbx.containers.DataCategory` cif_object:  object to convert
+    :returns:  DataFrame with CIF object data
+    """
+    if cif_object is None:
+        return DataFrame()
+    row_list = cif_object.row_list
+    attr_list = cif_object.attribute_list
+    return DataFrame(data=row_list, columns=attr_list)
+
+
 class BaseRecord:
     """Base class for all PDB records."""
 
@@ -78,11 +92,12 @@ class BaseRecord:
         if line is not None:
             self.original_text.append(line.rstrip("\r\n"))
 
-    def parse_cif(self, container):
+    def parse_cif(self, container) -> bool:
         """Parse CIF container for information about this record.
 
         :param :class:`pdbx.containers.DataContainer` container:  container to
             parse
+        :returns:  True if useful information was extracted from container
         """
         raise NotImplementedError("BaseRecord does not implement parse_cif.")
 

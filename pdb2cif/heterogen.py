@@ -6,7 +6,7 @@
 """
 import logging
 from collections import OrderedDict
-from .general import BaseRecord
+from .general import BaseRecord, cif_df
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -55,8 +55,27 @@ class Heterogen(BaseRecord):
         self.chain_id = None
         self.seq_num = None
         self.ins_code = None
-        self.num_het_atoms = None
-        self.text = None
+        self.num_het_atoms = ""
+        self.text = ""
+
+    @staticmethod
+    def parse_cif(container) -> list:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  list of :class:`SequenceDifferences` objects
+        """
+        df = cif_df(container.get_object("pdbx_nonpoly_scheme"))
+        het_list = []
+        for _, row in df.iterrows():
+            het = Heterogen()
+            het.hetatm_id = row["pdb_mon_id"]
+            het.chain_id = row["pdb_strand_id"]
+            het.seq_num = row["pdb_seq_num"]
+            het.ins_code = row["pdb_ins_code"]
+            het_list.append(het)
+        return het_list
 
     def parse_line(self, line):
         """Parse PDB-format line.

@@ -359,7 +359,7 @@ class Link(BaseRecord):
         self.is_element2 = None
 
     def __str__(self):
-        # See atom-name formatting rules at 
+        # See atom-name formatting rules at
         # https://www.cgl.ucsf.edu/chimera/docs/UsersGuide/tutorials/pdbintro.html
         if None in [self.is_element1, self.is_element2]:
             err = (

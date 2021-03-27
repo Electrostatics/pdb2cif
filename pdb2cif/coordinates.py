@@ -66,9 +66,9 @@ class Model(BaseRecord):
         :returns:  list of :class:`Atom`-like objects
         """
         return [
-            rec for rec in self.records if isinstance(
-                rec, (Atom, HeterogenAtom)
-            )
+            rec
+            for rec in self.records
+            if isinstance(rec, (Atom, HeterogenAtom))
         ]
 
     @property
@@ -77,9 +77,7 @@ class Model(BaseRecord):
 
         :returns:  list of :class:`Atom`-like objects
         """
-        return [
-            rec for rec in self.records if isinstance(rec, HeterogenAtom)
-        ]
+        return [rec for rec in self.records if isinstance(rec, HeterogenAtom)]
 
     @property
     def atoms(self) -> list:
@@ -87,9 +85,7 @@ class Model(BaseRecord):
 
         :returns:  list of :class:`Atom`-like objects
         """
-        return [
-            rec for rec in self.records if isinstance(rec, Atom)
-        ]
+        return [rec for rec in self.records if isinstance(rec, Atom)]
 
     def num_atoms(self, heavy_only) -> int:
         """Number of ATOM and HETATM entries in all chains in model.
@@ -127,9 +123,7 @@ class Model(BaseRecord):
     def num_ter(self) -> int:
         """Count number of termini in entry."""
         return len(
-            [
-                rec for rec in self.records if isinstance(rec, ChainTerminus)
-            ]
+            [rec for rec in self.records if isinstance(rec, ChainTerminus)]
         )
 
     def __str__(self):
@@ -326,7 +320,7 @@ class TemperatureFactor(BaseRecord):
         self.charge = line[78:80].strip()
 
     def __str__(self):
-        return(
+        return (
             f"ANISOU{self.serial:5} {atom_format(self)}{self.alt_loc:1}"
             f"{self.res_name:>3} {self.chain_id:1}{self.res_seq:4}"
             f"{self.ins_code:1} {self.u00:7}{self.u11:7}{self.u22:7}"

@@ -10,6 +10,7 @@ from pdb2cif.primary import DatabaseReference
 from pdb2cif.secondary import Helix
 from pdb2cif.heterogen import HeterogenSynonym
 import logging
+import pdbx
 from . import annotation, primary, heterogen, secondary, coordinates
 from . import crystallography, bookkeeping
 
@@ -72,6 +73,108 @@ class Entry:
         self._connect = []
         # Bookeeping section
         self._master = None
+
+    def parse_cif_title(self, container):
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        """
+        cif_obj = container.get_object("struct")
+        attr_list = cif_obj.attribute_list
+        row_list = cif_obj.row_list
+        iattr = attr_list.index("title")
+        self._title = row_list[0][iattr]
+
+    def parse_cif_file(self, cif_file):
+        """Parse CIF file into PDB entry.
+
+        :param file cif_file:  CIF file to parse (file object ready for
+            reading)
+        """
+        containers = pdbx.load(cif_file)
+        if len(containers) > 1:
+            errstr = f"Found {len(containers)} instead of 1."
+            raise ValueError(errstr)
+        else:
+            container = containers[0]
+        header = annotation.Header()
+        if header.parse_cif(container):
+            _LOGGER.debug(header)
+            self._header = header
+        obsolete = annotation.Obsolete()
+        if obsolete.parse_cif(container):
+            _LOGGER.debug(obsolete)
+            self._obsolete = obsolete
+        self.parse_cif_title(container)
+        split = annotation.Split()
+        if split.parse_cif(container):
+            _LOGGER.debug(split)
+            self._split = split
+        caveat = annotation.Caveat()
+        if caveat.parse_cif(container):
+            _LOGGER.debug(caveat)
+            self._caveat = caveat
+        compound = annotation.Compound()
+        if compound.parse_cif(container):
+            _LOGGER.debug(compound)
+            self._compound = compound
+        source = annotation.Source()
+        if source.parse_cif(container):
+            _LOGGER.debug(source)
+            self._source = source
+        keywords = annotation.Keywords()
+        if keywords.parse_cif(container):
+            _LOGGER.debug(keywords)
+            self._keyword = keywords
+        exp_data = annotation.ExperimentalData()
+        if exp_data.parse_cif(container):
+            _LOGGER.debug(exp_data)
+            self._experimental_data = exp_data
+        model_type = annotation.ModelType()
+        if model_type.parse_cif(container):
+            _LOGGER.debug(model_type)
+            self._model_type = model_type
+        authors = annotation.Author()
+        if authors.parse_cif(container):
+            _LOGGER.debug(authors)
+            self._author = authors
+        rev_data = annotation.RevisionData()
+        if rev_data.parse_cif(container):
+            _LOGGER.debug(rev_data)
+            self._revision_data = rev_data
+        supersedes = annotation.Supersedes()
+        if supersedes.parse_cif(container):
+            _LOGGER.debug(supersedes)
+            self._supersedes = supersedes
+        journals = annotation.Journal.parse_cif(container)
+        self._journal = journals
+        for journal in journals:
+            _LOGGER.debug(journal)
+        _LOGGER.warning("Not parsing REMARK records from CIF.")
+        db_refs = primary.DatabaseReference().parse_cif(container)
+        self._database_reference = db_refs
+        for ref in db_refs:
+            _LOGGER.debug(ref)
+        sequence_diffs = primary.SequenceDifferences().parse_cif(container)
+        self._sequence_difference = sequence_diffs
+        for diff in sequence_diffs:
+            _LOGGER.debug(diff)
+        sequence_residues = primary.SequenceResidues()
+        if sequence_residues.parse_cif(container):
+            self._sequence_residue = sequence_residues
+            # _LOGGER.debug(sequence_residues)
+        modified_residues = primary.ModifiedResidue().parse_cif(container)
+        if modified_residues:
+            self._modified_residue = modified_residues
+            for res in self._modified_residue:
+                _LOGGER.debug(res)
+        heterogens = heterogen.Heterogen.parse_cif(container)
+        if heterogens:
+            self._heterogen = heterogens
+            for het in self._heterogen:
+                _LOGGER.debug(het)
+        raise NotImplementedError()
 
     @property
     def header(self) -> annotation.Header:
@@ -584,19 +687,19 @@ class Entry:
         strings.append("END   ")
         return "\n".join(strings)
 
-    def parse_file(self, file_):
+    def parse_pdb_file(self, file_):
         """Parse a PDB file.
 
         :param file file_:  file open for reading.
         """
         for line in file_:
             try:
-                self.parse_line(line)
+                self.parse_pdb_line(line)
             except Exception as exc:
                 err = f"Offending line:\n{REF_LINE}\n{line}"
                 raise ValueError(err) from exc
 
-    def parse_line(self, line):
+    def parse_pdb_line(self, line):
         """Parse a line of a PDB file.
 
         :param str line:  line of PDB file
@@ -758,9 +861,7 @@ class Entry:
             matrix.parse_line(line)
             self._noncrystal_transform.append(matrix)
             if len(self._noncrystal_transform) > 3:
-                err = (
-                    f"Too many ({len(self._noncrystal_transform)}) transforms."
-                )
+                err = f"Too many ({len(self._noncrystal_transform)}) transforms."
                 raise ValueError(err)
         elif name == "MODEL":
             model = coordinates.Model()

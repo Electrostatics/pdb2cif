@@ -6,7 +6,10 @@
 """
 import logging
 from collections import OrderedDict
-from .general import BaseRecord, grouper
+import pandas as pd
+
+from pandas.core.algorithms import diff
+from .general import BaseRecord, grouper, cif_df
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -65,19 +68,90 @@ class DatabaseReference(BaseRecord):
 
     def __init__(self):
         super().__init__()
-        self.id_code = None
-        self.chain_id = None
-        self.seq_begin = None
-        self.ins_begin = None
-        self.seq_end = None
-        self.ins_end = None
-        self.database = None
-        self.database_accession = None
-        self.database_id_code = None
-        self.database_seq_begin = None
-        self.database_ins_begin = None
-        self.database_seq_end = None
-        self.database_ins_end = None
+        self.id_code = ""
+        self.chain_id = ""
+        self.seq_begin = ""
+        self.ins_begin = ""
+        self.seq_end = ""
+        self.ins_end = ""
+        self.database = ""
+        self.database_accession = ""
+        self.database_id_code = ""
+        self.database_seq_begin = ""
+        self.database_ins_begin = ""
+        self.database_seq_end = ""
+        self.database_ins_end = ""
+
+    @staticmethod
+    def parse_cif(container) -> list:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  list of :class:`DatabaseReference` or similar objects
+        """
+        db_refs = []
+        struct_ref_seq_df = cif_df(container.get_object("struct_ref_seq"))
+        struct_ref_df = cif_df(container.get_object("struct_ref"))
+        df = struct_ref_df.merge(
+            struct_ref_seq_df,
+            how="left",
+            left_on="id",
+            right_on="align_id",
+            suffixes=("", "_seq"),
+        )
+        for _, row in df.iterrows():
+            row = row.dropna()
+            id_code = row["pdbx_PDB_id_code"]
+            chain_id = row["pdbx_strand_id"]
+            seq_begin = row["seq_align_beg"]
+            try:
+                ins_begin = row["pdbx_seq_align_beg_ins_code"]
+            except KeyError:
+                ins_begin = ""
+            seq_end = row["seq_align_end"]
+            try:
+                ins_end = row["pdbx_seq_align_end_ins_code"]
+            except KeyError:
+                ins_end = ""
+            database = row["db_name"]
+            database_accession = row["pdbx_db_accession"]
+            database_id_code = row["db_code"]
+            database_seq_begin = row["db_align_beg"]
+            database_seq_end = row["db_align_end"]
+            if len(database_accession) < 13:
+                ref = DatabaseReference()
+                ref.id_code = id_code
+                ref.chain_id = chain_id
+                ref.seq_begin = seq_begin
+                ref.ins_begin = ins_begin
+                ref.seq_end = seq_end
+                ref.ins_end = ins_end
+                ref.database = database
+                ref.database_accession = database_accession
+                ref.database_id_code = database_id_code
+                ref.database_seq_begin = database_seq_begin
+                ref.database_seq_end = database_seq_end
+                db_refs.append(ref)
+            else:
+                ref1 = DatabaseReference1()
+                ref1.id_code = id_code
+                ref1.chain_id = chain_id
+                ref1.seq_begin = seq_begin
+                ref1.ins_begin = ins_begin
+                ref1.seq_end = seq_end
+                ref1.ins_end = ins_end
+                ref1.database = database
+                ref1.database_id_code = database_id_code
+                db_refs.append(ref1)
+                ref2 = DatabaseReference2()
+                ref2.id_code = id_code
+                ref2.chain_id = chain_id
+                ref2.database_accession = database_accession
+                ref2.database_seq_begin = database_seq_begin
+                ref2.database_seq_end = database_seq_end
+                db_refs.append(ref2)
+        return db_refs
 
     def parse_line(self, line):
         """Parse DBREF line.
@@ -100,14 +174,13 @@ class DatabaseReference(BaseRecord):
         self.database_ins_end = line[67].strip()
 
     def __str__(self):
-        return (
-            f"DBREF  {self.id_code:4} {self.chain_id:1} {self.seq_begin:>4}"
-            f"{self.ins_begin:1} {self.seq_end:>4}{self.ins_end:1} "
-            f"{self.database:6} {self.database_accession:8} "
-            f"{self.database_id_code:12} {self.database_seq_begin:>5}"
-            f"{self.database_ins_begin:1} {self.database_seq_end:>5}"
-            f"{self.database_ins_end:1}"
-        )
+        str = f"DBREF  {self.id_code:4} {self.chain_id:1} {self.seq_begin:>4}"
+        str += f"{self.ins_begin:1} {self.seq_end:>4}{self.ins_end:1} "
+        str += f"{self.database:6} {self.database_accession:8} "
+        str += f"{self.database_id_code:12} {self.database_seq_begin:>5}"
+        str += f"{self.database_ins_begin:1} {self.database_seq_end:>5}"
+        str += f"{self.database_ins_end:1}"
+        return str
 
 
 class DatabaseReference1(BaseRecord):
@@ -151,14 +224,14 @@ class DatabaseReference1(BaseRecord):
 
     def __init__(self):
         super().__init__()
-        self.ins_code = None
+        self.id_code = None
         self.chain_id = None
         self.seq_begin = None
         self.ins_begin = None
         self.seq_end = None
         self.ins_end = None
         self.database = None
-        self.db_id_code = None
+        self.database_id_code = None
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -173,13 +246,13 @@ class DatabaseReference1(BaseRecord):
         self.seq_end = int(line[20:24])
         self.ins_end = line[24].strip()
         self.database = line[26:32].strip()
-        self.db_id_code = line[47:67].strip()
+        self.database_id_code = line[47:67].strip()
 
     def __str__(self):
         return (
             f"DBREF1 {self.id_code:4} {self.chain_id:1} {self.seq_begin:4}"
             f"{self.ins_begin:1} {self.seq_end:4}{self.ins_end:1}"
-            f" {self.database:6}               {self.db_id_code:20}"
+            f" {self.database:6}               {self.database_id_code:20}"
         )
 
 
@@ -218,9 +291,9 @@ class DatabaseReference2(BaseRecord):
         super().__init__()
         self.id_code = None
         self.chain_id = None
-        self.db_accession = None
-        self.seq_begin = None
-        self.seq_seq_end = None
+        self.database_accession = None
+        self.database_seq_begin = None
+        self.database_seq_end = None
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -230,14 +303,14 @@ class DatabaseReference2(BaseRecord):
         super().parse_line(line)
         self.id_code = line[7:11].strip()
         self.chain_id = line[12].strip()
-        self.db_accession = line[18:40].strip()
-        self.seq_begin = int(line[45:55])
+        self.database_accession = line[18:40].strip()
+        self.database_seq_begin = int(line[45:55])
         self.seq_end = int(line[57:67])
 
     def __str__(self):
         return (
             f"DBREF2 {self.id_code:4} {self.chain_id:1}"
-            f"     {self.db_accession:22}     {self.seq_begin:10}"
+            f"     {self.database_accession:22}     {self.database_seq_begin:10}"
             f"  {self.seq_end:10}"
         )
 
@@ -281,6 +354,20 @@ class ModifiedResidue(BaseRecord):
         self.ins_code = None
         self.standard_res = None
         self.comment = None
+
+    @staticmethod
+    def parse_cif(container) -> list:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  list of :class:`SequenceDifferences` objects
+        """
+        mod_res = []
+        df = cif_df(container.get_object("pdbx_struct_mod_residue"))
+        if len(df) > 0:
+            raise NotImplementedError("MODRES parsing not implemented.")
+        return mod_res
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -357,6 +444,22 @@ class SequenceDifferences(BaseRecord):
         self.db_res = None
         self.db_seq = ""
         self.conflict = None
+
+    @staticmethod
+    def parse_cif(container) -> list:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  list of :class:`SequenceDifferences` objects
+        """
+        diffs = []
+        cif_obj = container.get_object("struct_ref_seq_dif")
+        if cif_obj is None:
+            return diffs
+        df = cif_df(cif_obj)
+        print(df)
+        raise NotImplementedError()
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -456,6 +559,31 @@ class SequenceResidues(BaseRecord):
             as values.
         """
         return self._residues
+
+    def parse_cif(self, container) -> bool:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  True if useful information was extracted from container
+        """
+        value_added = False
+        pdbx_poly_seq_df = cif_df(
+            container.get_object("pdbx_poly_seq_scheme")
+        )
+        groups = pdbx_poly_seq_df.groupby("pdb_strand_id")
+        for strand_id, df in groups:
+            if len(df["mon_id"].values) > 0:
+                value_added = True
+                self._residues[strand_id] = df["mon_id"].values
+        entity_poly_seq_df = cif_df(
+            container.get_object("entity_poly_seq_df")
+        )
+        if len(entity_poly_seq_df) > 0:
+            raise NotImplementedError(
+                "Parsing entity_poly_seq not implemented."
+            )
+        return value_added
 
     @residues.setter
     def residues(self, value):

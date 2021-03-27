@@ -6,7 +6,11 @@
 """
 import logging
 from collections import OrderedDict
-from .general import BaseRecord, grouper, date_parse, date_format
+from datetime import datetime, date
+import pandas as pd
+
+from pandas.core.frame import DataFrame
+from .general import BaseRecord, grouper, date_parse, date_format, cif_df
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -43,16 +47,19 @@ class Author(BaseRecord):
         super().parse_line(line)
         self.author_list.append(line[10:79].strip())
 
-    def parse_cif(self, container):
+    def parse_cif(self, container) -> bool:
         """Parse CIF container for information about this record.
 
         :param :class:`pdbx.containers.DataContainer` container:  container to
             parse
+        :returns:  True if useful information was extracted from container
         """
-        cif_obj = container.get_object("audit_author")
-        raise NotImplementedError()
-
-
+        value_added = False
+        df = cif_df(container.get_object("audit_author"))
+        if len(df) > 0:
+            self.author_list = df["name"].values
+            return True
+        return False
 
     def __str__(self):
         strings = []
@@ -90,6 +97,27 @@ class Caveat(BaseRecord):
         super().__init__()
         self.id_code = None
         self.comment = []
+
+    def parse_cif(self, container) -> bool:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  True if useful information was extracted from container
+        """
+        cif_obj = container.get_object("database_PDB_caveat")
+        if cif_obj is None:
+            return False
+        df = cif_df(cif_obj)
+        print(df)
+        raise NotImplementedError()
+        attr_list = cif_obj.attribute_list
+        row_list = cif_obj.row_list
+        iattr = attr_list.index("id")
+        self.id_code = row_list[0][iattr]
+        iattr = attr_list.index("text")
+        self.comment += [row[iattr] for row in row_list]
+        return True
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -141,6 +169,41 @@ class Compound(BaseRecord):
     def __init__(self):
         super().__init__()
         self.compound = []
+
+    def parse_cif(self, container) -> bool:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  True if useful information was extracted from container
+        """
+        value_added = False
+        entity_df = cif_df(container.get_object("entity"))
+        entity_name_com_df = cif_df(container.get_object("entity_name_com"))
+        df = entity_df.merge(
+            entity_name_com_df, how="left", left_on="id", right_on="entity_id"
+        )
+        for _, row in df.iterrows():
+            value_added = True
+            row = row.dropna()
+            value = row["pdbx_description"]
+            self.compound += [f"MOLECULE:  {value}"]
+            if "pdbx_fragment" in row.index:
+                value = row["pdbx_fragment"]
+                self.compound += [f"FRAGMENT:  {value}"]
+            if "name" in row.index:
+                value = row["name"]
+                self.compound += [f"SYNONYM:  {value}"]
+            if "pdbx_ec" in row.index:
+                value = row["pdbx_ec"]
+                self.compound += [f"EC:  {value}"]
+            if "pdbx_mutation" in row.index:
+                value = row["pdbx_mutation"]
+                self.compound += [f"MUTATION:  {value}"]
+            if "details" in row.index:
+                value = row["details"]
+                self.compound += [f"OTHER_DETAILS:  {value}"]
+        return value_added
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -194,6 +257,20 @@ class ExperimentalData(BaseRecord):
     def __init__(self):
         super().__init__()
         self.technique = []
+
+    def parse_cif(self, container) -> bool:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  True if useful information was extracted from container
+        """
+        cif_obj = container.get_object("exptl")
+        df = cif_df(cif_obj)
+        if len(df) > 0:
+            self.technique = df["method"].values
+            return True
+        return False
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -260,6 +337,25 @@ class Header(BaseRecord):
             f"{self.id_code:4}"
         )
 
+    def parse_cif(self, container) -> bool:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  True if useful information was extracted from container
+        """
+        df = cif_df(container.get_object("struct_keywords"))
+        self.classification = ", ".join(df["pdbx_keywords"].values)
+        df = cif_df(container.get_object("pdbx_database_status"))
+        dep_date = df["recvd_initial_deposition_date"].values[0]
+        dep_date = datetime.strptime(dep_date, r"%Y-%m-%d")
+        self.dep_date = date(
+            year=dep_date.year, month=dep_date.month, day=dep_date.day
+        )
+        df = cif_df(container.get_object("entry"))
+        self.id_code = df["id"].values[0]
+        return True
+
 
 class Journal(BaseRecord):
     """JRNL field
@@ -280,7 +376,113 @@ class Journal(BaseRecord):
 
     def __init__(self):
         super().__init__()
-        self.text = None
+        self.text = []
+
+    @staticmethod
+    def parse_cif(container) -> list:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  list of :class:`Journal` objects
+        """
+        journals = []
+        citation_df = cif_df(container.get_object("citation"))
+        author_df = cif_df(container.get_object("citation_author"))
+        editor_df = cif_df(container.get_object("citation_editor"))
+        df = citation_df.merge(
+            author_df, how="left", left_on="id", right_on="citation_id"
+        )
+        if "citation_id" in editor_df.columns:
+            df = df.merge(
+                editor_df,
+                how="left",
+                left_on="id",
+                right_on="citation_id",
+                suffixes=("", "_ed"),
+            )
+        for cite_id, citation in df.groupby("id"):
+            journal = Journal()
+            authors = []
+            curr_line = ""
+            for author in citation["name"].values:
+                if len(curr_line) + len(author) + 2 > 59:
+                    authors.append(curr_line)
+                    curr_line = author
+                elif len(curr_line) > 0:
+                    curr_line += f", {author}"
+                else:
+                    curr_line = author
+            for iline, line in enumerate(authors):
+                if iline > 0:
+                    line = f"AUTH {iline+1} {line}"
+                else:
+                    line = f"AUTH   {line}"
+                journal.text.append(line)
+            title = citation["title"].values[0]
+            titles = []
+            curr_line = ""
+            for word in title.split():
+                if len(curr_line) + len(word) + 1 > 59:
+                    titles.append(curr_line)
+                    curr_line = word
+                elif len(curr_line) > 0:
+                    curr_line += f" {word}"
+                else:
+                    curr_line = word
+            for iline, line in enumerate(titles):
+                if iline > 0:
+                    line = f"TITL {iline+1} {line}"
+                else:
+                    line = f"TITL   {line}"
+                journal.text.append(line)
+            if "name_ed" in citation.columns:
+                editor_list = citation["name_ed"]
+            else:
+                editor_list = []
+            editors = []
+            curr_line = ""
+            for editor in editor_list:
+                if len(curr_line) + len(editor) + 2 > 59:
+                    editors.append(curr_line)
+                    curr_line = editor
+                elif len(curr_line) > 0:
+                    curr_line += f", {editor}"
+                else:
+                    curr_line = editor
+            for iline, line in enumerate(editors):
+                if iline > 0:
+                    line = f"AUTH {iline+1} {line}"
+                else:
+                    line = f"AUTH   {line}"
+                journal.text.append(line)
+            publication = citation["journal_abbrev"].values[0][:27]
+            volume = citation["journal_volume"].values[0][:4]
+            page = citation["page_first"].values[0][:5]
+            year = citation["year"].values[0]
+            line = f"REF    {publication:<28}  V.{volume:4} {page:5} {year}"
+            journal.text.append(line)
+            for label, key in [
+                ("ASTM", "journal_id_ASTM"),
+                ("ISSN", "journal_id_ISSN"),
+                ("ISBN", "book_id_ISBN"),
+                ("CNTRY", "country"),
+            ]:
+                try:
+                    value = citation[key].values[0]
+                    line = f"REFN                   {label} {value:25}"
+                    journal.text.append(line)
+                except KeyError:
+                    pass
+            for label, key in [
+                ("PMID", "pdbx_database_id_PubMed"),
+                ("DOI", "pdbx_database_id_DOI"),
+            ]:
+                value = citation_df[key].values[0]
+                line = f"{label:<4}   {value}"
+                journal.text.append(line)
+            journals.append(journal)
+        return journals
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -288,10 +490,11 @@ class Journal(BaseRecord):
         :param str line:  line to parse
         """
         super().parse_line(line)
-        self.text = line[12:79].strip()
+        self.text.append(line[12:79].strip())
 
     def __str__(self):
-        return f"JRNL        {self.text:67}"
+        lines = [f"JRNL        {line:67}" for line in self.text]
+        return "\n".join(lines)
 
 
 class Keywords(BaseRecord):
@@ -320,6 +523,20 @@ class Keywords(BaseRecord):
     def __init__(self):
         super().__init__()
         self.keywords = []
+
+    def parse_cif(self, container) -> bool:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  True if useful information was extracted from container
+        """
+        cif_obj = container.get_object("struct_keywords")
+        df = cif_df(cif_obj)
+        if len(df) > 0:
+            self.keywords = df["text"].values
+            return True
+        return False
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -362,6 +579,23 @@ class ModelType(BaseRecord):
     def __init__(self):
         super().__init__()
         self.comment = []
+
+    def parse_cif(self, container) -> bool:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  True if useful information was extracted from container
+        """
+        cif_obj = container.get_object("struct")
+        if cif_obj is None:
+            return False
+        df = cif_df(cif_obj)
+        comment = df["pdbx_model_type_details"].dropna()
+        if len(comment) > 0:
+            self.comment = comment.values
+            return True
+        return False
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -439,6 +673,34 @@ class Obsolete(BaseRecord):
         self.replace_date = None
         self.id_code = None
         self.replace_id_codes = []
+
+    def parse_cif(self, container) -> bool:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  True if useful information was extracted from container
+        """
+        cif_obj = container.get_object("pdbx_database_PDB_obs_spr")
+        if cif_obj is None:
+            return False
+        df = cif_df(cif_obj)
+        print(df)
+        raise NotImplementedError()
+        attr_list = cif_obj.attribute_list
+        row_list = cif_obj.row_list
+        iattr = attr_list.index("replace_pdb_id")
+        self.id_code = row_list[0][iattr]
+        iattr = attr_list.index("date")
+        rep_date = row_list[0][iattr]
+        rep_date = datetime.strptime(rep_date, r"%Y-%m-%d")
+        rep_date = date(
+            year=rep_date.year, month=rep_date.month, day=rep_date.day
+        )
+        self.replace_date = rep_date
+        iattr = attr_list.index("pdb_id")
+        self.replace_id_codes = [row[iattr] for row in row_list]
+        return True
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -674,6 +936,36 @@ class RevisionData(BaseRecord):
     def revisions(self, value):
         self._revisions = value
 
+    def parse_cif(self, container) -> bool:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  True if useful information was extracted from container
+        """
+        value_added = False
+        cif_obj = container.get_object("database_PDB_rev")
+        if cif_obj is None:
+            return False
+        df = cif_df(cif_obj)
+        print(df)
+        raise NotImplementedError()
+        for key, values in cif_dict:
+            revision = Revision()
+            revision.modification_num = key
+            mod_date = values["date"]
+            mod_date = datetime.strptime(mod_date, r"%Y-%m-%d")
+            mod_date = date(
+                year=mod_date.year, month=mod_date.month, day=mod_date.day
+            )
+            revision.modification_date = mod_date
+            revision.modification_id = values["replaces"]
+            revision.modification_type = values["mod_type"]
+            revision.records = values["type"]
+            self.revisions.append(revision)
+            value_added = True
+        return value_added
+
     def parse_line(self, line):
         """Parse PDB-format line.
 
@@ -896,6 +1188,95 @@ class Source(BaseRecord):
         super().__init__()
         self.source = []
 
+    def parse_cif(self, container) -> bool:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  True if useful information was extracted from container
+        """
+        value_added = False
+        entity_src_nat_df = cif_df(container.get_object("entity_src_nat"))
+        entity_src_gen_df = cif_df(container.get_object("entity_src_gen"))
+        try:
+            df = entity_src_nat_df.merge(
+                entity_src_gen_df, how="outer", on="entity_id"
+            )
+        except KeyError:
+            if "entity_id" in entity_src_nat_df.columns:
+                df = entity_src_nat_df
+            elif "entity_id" in entity_src_gen_df.columns:
+                df = entity_src_gen_df
+            else:
+                return False
+        pdbx_entity_src_syn_df = cif_df(
+            container.get_object("pdbx_entity_src_syn")
+        )
+        try:
+            df = df.merge(pdbx_entity_src_syn_df, how="outer", on="entity_id")
+        except KeyError:
+            pass
+        for _, row in df.iterrows():
+            row = row.dropna()
+            for label, keys in {
+                "FRAGMENT": ["pdbx_fragment", "pdbx_gene_src_fragment"],
+                "ORGANISM_SCIENTIFIC": [
+                    "pdbx_organism_scientific",
+                    "pdbx_gene_src_scientific_name",
+                    "organism_scientific",
+                ],
+                "ORGANISM_COMMON": [
+                    "common_name",
+                    "gene_src_common_name",
+                    "organism_common_name",
+                ],
+                "ORGANISM_TAXID": [
+                    "pdbx_ncbi_taxonomy_id",
+                    "pdbx_gene_src_ncbi_taxonomy_id",
+                    "ncbi_taxonomy_id",
+                ],
+                "STRAIN": ["strain", "gene_src_strain"],
+                "VARIANT": ["pdbx_variant", "pdbx_gene_src_variant"],
+                "CELL_LINE": ["pdbx_cell_line", "pdbx_gene_src_cell_line"],
+                "ATCC": ["pdbx_atcc", "pdbx_gene_src_atcc"],
+                "ORGAN": ["pdbx_organ", "pdbx_gene_src_organ"],
+                "TISSUE": ["tissue", "gene_src_tissue"],
+                "CELL": ["pdbx_cell", "pdbx_gene_src_cell"],
+                "ORGANELLE": ["pdbx_organelle", "pdbx_gene_src_organelle"],
+                "SECRETION": ["pdbx_secretion"],
+                "CELLULAR_LOCATION": [
+                    "pdbx_cellular_location",
+                    "pdbx_gene_src_cellular_location",
+                ],
+                "PLASMID": ["pdbx_plasmid_name"],
+                "GENE": ["pdbx_gene_src_gene"],
+                "EXPRESSION_SYSTEM": ["pdbx_host_org_scientific_name"],
+                "EXPRESSION_SYSTEM_COMMON": ["host_org_common_name"],
+                "EXPRESSION_SYSTEM_TAXID": ["pdbx_host_org_ncbi_taxonomy_id"],
+                "EXPRESSION_SYSTEM_STRAIN": ["pdbx_host_org_strain"],
+                "EXPRESSION_SYSTEM_VARIANT": ["pdbx_host_org_variant"],
+                "EXPRESSION_SYSTEM_CELL_LINE": ["pdbx_host_org_cell_line"],
+                "EXPRESSION_SYSTEM_ATCC_NUMBER": ["pdbx_host_org_atcc"],
+                "EXPRESSION_SYSTEM_ORGAN": ["pdbx_host_org_organ"],
+                "EXPRESSION_SYSTEM_TISSUE": ["pdbx_host_org_tissue"],
+                "EXPRESSION_SYSTEM_CELL": ["pdbx_host_org_cell"],
+                "EXPRESSION_SYSTEM_ORGANELLE": ["pdbx_host_org_organelle"],
+                "EXPRESSION_SYSTEM_CELLULAR_LOCATION": [
+                    "pdbx_host_org_cellular_location"
+                ],
+                "EXPRESSION_SYSTEM_VECTOR_TYPE": [
+                    "pdbx_host_org_vector_type"
+                ],
+                "EXPRESSION_SYSTEM_VECTOR": ["pdbx_host_org_vector"],
+                "EXPRESSION_SYSTEM_PLASMID": ["plasmid_name"],
+                "EXPRESSION_SYSTEM_GENE": ["pdbx_host_org_gene"],
+            }.items():
+                for key in keys:
+                    if key in row.index:
+                        self.source += [f"{label}: {row[key]}"]
+                        value_added = True
+        return value_added
+
     def parse_line(self, line):
         """Parse a PDB-format line.
 
@@ -964,6 +1345,20 @@ class Split(BaseRecord):
     def __init__(self):
         super().__init__()
         self.id_codes = []
+
+    def parse_cif(self, container) -> bool:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  True if useful information was extracted from container
+        """
+        cif_obj = container.get_object("pdbx_database_related")
+        if cif_obj is None:
+            return False
+        iattr = cif_obj.attribute_list.index("db_id")
+        self.id_codes += [row[iattr] for row in cif_obj.row_list]
+        return True
 
     def parse_line(self, line):
         """Parse input line.
@@ -1045,6 +1440,36 @@ class Supersedes(BaseRecord):
         self.super_date = None
         self.id_code = None
         self.super_id_codes = []
+
+    def parse_cif(self, container) -> bool:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  True if useful information was extracted from container
+        """
+        value_added = False
+        cif_obj = container.get_object("pdbx_database_PDB_obs_spr")
+        if cif_obj is None:
+            return False
+        df = cif_df(cif_obj)
+        print(df)
+        raise NotImplementedError()
+        attr_list = cif_obj.attribute_list
+        row_list = cif_obj.row_list
+        super_date = row_list[0][attr_list.index("date")]
+        super_date = datetime.strptime(super_date, r"%Y-%m-%d")
+        super_date = date(
+            year=super_date.year, month=super_date.month, day=super_date.day
+        )
+        self.super_date = super_date
+        self.id_code = row_list[0][attr_list.index("pdb_id")]
+        for row in row_list:
+            value = row[attr_list.index("replace_pdb_id")]
+            if value:
+                self.super_id_codes.append(value)
+                value_added = True
+        return value_added
 
     def parse_line(self, line):
         """Parse PDB-format line.

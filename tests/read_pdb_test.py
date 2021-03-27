@@ -14,7 +14,7 @@ def test_pdb(pdb_id):
     _LOGGER.debug(f"Parsing {pdb_id} in PDB format.")
     pdb_file = get_pdb(pdb_id)
     entry = Entry()
-    entry.parse_file(pdb_file)
+    entry.parse_pdb_file(pdb_file)
     entry.check_master()
 
     test_row = TEST_DATA.loc[pdb_id, :]
