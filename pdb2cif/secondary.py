@@ -73,17 +73,17 @@ class CisPeptide(BaseRecord):
         df = cif_df(container.get_object("struct_mon_prot_cis"))
         for _, row in df.iterrows():
             pep = CisPeptide()
-            pep.ser_num = row["_struct_mon_prot_cis.pdbx_id"]
-            pep.pep1 = row["_struct_mon_prot_cis.auth_comp_id"]
-            pep.chain_id1 = row["_struct_mon_prot_cis.auth_asym_id"]
-            pep.seq_num1 = row["_struct_mon_prot_cis.auth_seq_id"]
-            pep.icode1 = row["_struct_mon_prot_cis.pdbx_PDB_ins_code"]
-            pep.pep2 = row["_struct_mon_prot_cis.pdbx_auth_comp_id_2"]
-            pep.chain_id2 = row["_struct_mon_prot_cis.pdbx_auth_asym_id_2"]
-            pep.chain_id2 = row["_struct_mon_prot_cis.pdbx_auth_seq_id_2"]
-            pep.icode2 = row["_struct_mon_prot_cis.pdbx_PDB_ins_code_2"]
-            pep.mod_num = row["_struct_mon_prot_cis.pdbx_PDB_model_num"]
-            pep.measure = row["_struct_mon_prot_cis.pdbx_omega_angle"]
+            pep.ser_num = row["pdbx_id"]
+            pep.pep1 = row["auth_comp_id"]
+            pep.chain_id1 = row["auth_asym_id"]
+            pep.seq_num1 = row["auth_seq_id"]
+            pep.icode1 = row["pdbx_PDB_ins_code"]
+            pep.pep2 = row["pdbx_auth_comp_id_2"]
+            pep.chain_id2 = row["pdbx_auth_asym_id_2"]
+            pep.chain_id2 = row["pdbx_auth_seq_id_2"]
+            pep.icode2 = row["pdbx_PDB_ins_code_2"]
+            pep.mod_num = row["pdbx_PDB_model_num"]
+            pep.measure = row["pdbx_omega_angle"]
             cis_peps.append(pep)
         return cis_peps
 
