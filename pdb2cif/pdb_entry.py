@@ -175,6 +175,18 @@ class Entry:
         sites = annotation.Site.parse_cif(container)
         if sites:
             self._site = sites
+        unit_cell = crystallography.UnitCell()
+        if unit_cell.parse_cif(container):
+            self._unit_cell = unit_cell
+        transforms = crystallography.OriginalTransform.parse_cif(container)
+        if transforms:
+            self._orig_transform = transforms
+        transforms = crystallography.FractionalTransform.parse_cif(container)
+        if transforms:
+            self._frac_transform = transforms
+        transforms = crystallography.NoncrystalTransform.parse_cif(container)
+        if transforms:
+            self._noncrystal_transform = transforms
         raise NotImplementedError()
 
     @property

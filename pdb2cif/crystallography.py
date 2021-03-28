@@ -5,7 +5,7 @@
 .. codeauthor::  Nathan Baker
 """
 import logging
-from .general import BaseRecord
+from .general import BaseRecord, cif_df
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -45,6 +45,25 @@ class FractionalTransform(BaseRecord):
         self.sn2 = None
         self.sn3 = None
         self.unif = None
+
+    @staticmethod
+    def parse_cif(container) -> list:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  list of :class:`SequenceDifferences` objects
+        """
+        transforms = []
+        df = cif_df(container.get_object("atom_sites"))
+        for n in [1, 2, 3]:
+            transform = FractionalTransform(n)
+            transform.sn1 = df[f"fract_transf_matrix[{n}][1]"]
+            transform.sn2 = df[f"fract_transf_matrix[{n}][2]"]
+            transform.sn3 = df[f"fract_transf_matrix[{n}][3]"]
+            transform.unif = df[f"fract_transf_vector[{n}]"]
+            transforms.append(transform)
+        return transforms
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -97,6 +116,25 @@ class OriginalTransform(BaseRecord):
         self.on2 = None
         self.on3 = None
         self.tn = None
+
+    @staticmethod
+    def parse_cif(container) -> list:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  list of :class:`SequenceDifferences` objects
+        """
+        transforms = []
+        df = cif_df(container.get_object("database_PDB_matrix"))
+        for n in [1, 2, 3]:
+            transform = OriginalTransform(n)
+            transform.on1 = df[f"origx[{n}][1]"]
+            transform.on2 = df[f"origx[{n}][2]"]
+            transform.on3 = df[f"origx[{n}][3]"]
+            transform.tn = df[f"origx_vector[{n}]"]
+            transforms.append(transform)
+        return transforms
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -159,6 +197,27 @@ class NoncrystalTransform(BaseRecord):
         self.mn3 = None
         self.vecn = None
         self.i_given = None
+
+    @staticmethod
+    def parse_cif(container) -> list:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  list of :class:`SequenceDifferences` objects
+        """
+        transforms = []
+        df = cif_df(container.get_object("struct_ncs_oper"))
+        for n in [1, 2, 3]:
+            transform = NoncrystalTransform(n)
+            transform.serial = df["id"]
+            transform.mn1 = df[f"matrix[{n}][1]"]
+            transform.mn2 = df[f"matrix[{n}][2]"]
+            transform.mn3 = df[f"matrix[{n}][3]"]
+            transform.vecn = df[f"vector[{n}]"]
+            transform.i_given = df["code"]
+            transforms.append(transform)
+        return transforms
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -223,6 +282,25 @@ class UnitCell(BaseRecord):
         self.gamma = None
         self.space_group = None
         self.z = ""
+
+    def parse_cif(self, container) -> bool:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  True if useful information was extracted from container
+        """
+        cell_df = cif_df(container.get_object("cell"))
+        sym_df = cif_df(container.get_object("symmetry"))
+        self.a = cell_df["length_a"].values[0]
+        self.b = cell_df["length_b"].values[0]
+        self.c = cell_df["length_c"].values[0]
+        self.alpha = cell_df["angle_alpha"].values[0]
+        self.beta = cell_df["angle_beta"].values[0]
+        self.gamma = cell_df["angle_gamma"].values[0]
+        self.space_group = sym_df["space_group_name_H-M"].values[0]
+        self.z = cell_df["Z_PDB"].values[0]
+        return True
 
     def parse_line(self, line):
         """Parse PDB-format line.
