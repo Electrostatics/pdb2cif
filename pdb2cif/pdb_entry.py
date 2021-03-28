@@ -58,7 +58,7 @@ class Entry:
         self._link = []
         self._cis_peptide = []
         # Miscellaneous section
-        self.site = []
+        self._site = []
         # Crystallographic and coordinate transformation section
         self._unit_cell = None
         self._orig_transform = []
@@ -172,6 +172,9 @@ class Entry:
         cis_peps = secondary.CisPeptide.parse_cif(container)
         if cis_peps:
             self._cis_peptide = cis_peps
+        sites = annotation.Site.parse_cif(container)
+        if sites:
+            self._site = sites
         raise NotImplementedError()
 
     @property
@@ -657,7 +660,7 @@ class Entry:
             if record is not None:
                 strings.append(str(record))
         # Miscellaneous section
-        for record in self.site:
+        for record in self._site:
             if record is not None:
                 strings.append(str(record))
         # Crystallographic and coordinate transformation section
@@ -830,7 +833,7 @@ class Entry:
         elif name == "SITE":
             site = annotation.Site()
             site.parse_line(line)
-            self.site.append(site)
+            self._site.append(site)
         elif name == "CRYST1":
             if self._unit_cell is not None:
                 err = f"CRYST1 already exists:\n{self._unit_cell}"
@@ -939,7 +942,7 @@ class Entry:
             ("HETATM", master.num_het, len(self._heterogen)),
             ("HELIX", master.num_helix, len(self._helix)),
             ("SHEET", master.num_sheet, len(self._sheet)),
-            ("SITE", master.num_site, len(self.site)),
+            ("SITE", master.num_site, len(self._site)),
             ("transform", master.num_xform, self.num_transforms()),
             ("coordinate", master.num_coord, self.num_atoms()),
             ("TER", master.num_ter, self.num_ter()),

@@ -1063,7 +1063,6 @@ class Site(BaseRecord):
 
     def __init__(self):
         super().__init__()
-        self.sites = OrderedDict()
         self.seq_num = None
         self.site_id = None
         self.num_res = None
@@ -1083,6 +1082,47 @@ class Site(BaseRecord):
         self.chain_id4 = ""
         self.seq4 = ""
         self.ins_code4 = ""
+
+    @staticmethod
+    def parse_cif(container) -> list:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  list of :class:`SequenceDifferences` objects
+        """
+        sites = {}
+        df = cif_df(container.get_object("struct_site_gen"))
+        for _, row in df.iterrows():
+            id_ = row["id"]
+            site = sites.get(id_, Site())
+            site.seq_num = id_
+            site.site_id = row["site_id"]
+            site.num_res = row["pdbx_num_res"]
+            if not site.res_name1:
+                site.res_name1 = row["auth_comp_id"]
+                site.chain_id1 = row["auth_asym_id"]
+                site.seq1 = row["auth_seq_id"]
+                site.ins_code1 = row["pdbx_auth_ins_code"]
+            elif not site.res_name2:
+                site.res_name2 = row["auth_comp_id"]
+                site.chain_id2 = row["auth_asym_id"]
+                site.seq2 = row["auth_seq_id"]
+                site.ins_code2 = row["pdbx_auth_ins_code"]
+            elif not site.res_name3:
+                site.res_name3 = row["auth_comp_id"]
+                site.chain_id3 = row["auth_asym_id"]
+                site.seq3 = row["auth_seq_id"]
+                site.ins_code3 = row["pdbx_auth_ins_code"]
+            elif not site.res_name4:
+                site.res_name4 = row["auth_comp_id"]
+                site.chain_id4 = row["auth_asym_id"]
+                site.seq4 = row["auth_seq_id"]
+                site.ins_code4 = row["pdbx_auth_ins_code"]
+            else:
+                raise NotImplementedError(f"Too many records for site {id_}.")
+            sites[id_] = site
+        return list(sites.values())
 
     def parse_line(self, line):
         """Parse PDB-format line.
