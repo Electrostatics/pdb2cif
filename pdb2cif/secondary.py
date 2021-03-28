@@ -5,7 +5,7 @@
 .. codeauthor::  Nathan Baker
 """
 import logging
-from .general import BaseRecord, atom_format
+from .general import BaseRecord, atom_format, cif_df
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -60,6 +60,32 @@ class CisPeptide(BaseRecord):
         self.icode2 = None
         self.mod_num = None
         self.measure = None
+
+    @staticmethod
+    def parse_cif(container) -> list:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  list of :class:`SequenceDifferences` objects
+        """
+        cis_peps = []
+        df = cif_df(container.get_object("struct_mon_prot_cis"))
+        for _, row in df.iterrows():
+            pep = CisPeptide()
+            pep.ser_num = row["_struct_mon_prot_cis.pdbx_id"]
+            pep.pep1 = row["_struct_mon_prot_cis.auth_comp_id"]
+            pep.chain_id1 = row["_struct_mon_prot_cis.auth_asym_id"]
+            pep.seq_num1 = row["_struct_mon_prot_cis.auth_seq_id"]
+            pep.icode1 = row["_struct_mon_prot_cis.pdbx_PDB_ins_code"]
+            pep.pep2 = row["_struct_mon_prot_cis.pdbx_auth_comp_id_2"]
+            pep.chain_id2 = row["_struct_mon_prot_cis.pdbx_auth_asym_id_2"]
+            pep.chain_id2 = row["_struct_mon_prot_cis.pdbx_auth_seq_id_2"]
+            pep.icode2 = row["_struct_mon_prot_cis.pdbx_PDB_ins_code_2"]
+            pep.mod_num = row["_struct_mon_prot_cis.pdbx_PDB_model_num"]
+            pep.measure = row["_struct_mon_prot_cis.pdbx_omega_angle"]
+            cis_peps.append(pep)
+        return cis_peps
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -138,6 +164,31 @@ class DisulfideBond(BaseRecord):
         self.sym1 = None
         self.sym2 = None
         self.length = None
+
+    @staticmethod
+    def parse_cif(container) -> list:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  list of :class:`SequenceDifferences` objects
+        """
+        bonds = []
+        df = cif_df(container.get_object("struct_conn"))
+        for _, row in df.iterrows():
+            bond = DisulfideBond()
+            bond.ser_num = row["conn_type_id"]
+            bond.chain_id1 = row["ptnr1_auth_asym_id"]
+            bond.seq_num1 = row["ptnr1_auth_seq_id"]
+            bond.icode1 = row["pdbx_ptnr1_PDB_ins_code"]
+            bond.chain_id2 = row["ptnr2_auth_asym_id"]
+            bond.seq_num2 = row["ptnr2_auth_seq_id"]
+            bond.icode2 = row["pdbx_ptnr2_PDB_ins_code"]
+            bond.sym1 = row["ptnr1_symmetry"]
+            bond.sym2 = row["ptnr2_symmetry"]
+            bond.length = row["pdbx_dist_value"]
+            bonds.append(bond)
+        return bonds
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -232,6 +283,34 @@ class Helix(BaseRecord):
         self.helix_class = None
         self.comment = None
         self.length = None
+
+    @staticmethod
+    def parse_cif(container) -> list:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  list of :class:`SequenceDifferences` objects
+        """
+        helices = []
+        df = cif_df(container.get_object("struct_conf"))
+        for _, row in df.iterrows():
+            helix = Helix()
+            helix.ser_num = row.id
+            helix.helix_id = row.pdbx_PDB_helix_id
+            helix.init_res_name = row.beg_auth_comp_id
+            helix.init_chain_id = row.beg_auth_asym_id
+            helix.init_seq_num = row.beg_auth_seq_id
+            helix.init_i_code = row.pdbx_beg_PDB_ins_code
+            helix.end_res_name = row.end_auth_comp_id
+            helix.end_chain_id = row.end_auth_asym_id
+            helix.end_seq_num = row.end_auth_seq_id
+            helix.end_i_code = row.pdbx_end_PDB_ins_code
+            helix.helix_class = row.pdbx_PDB_helix_class
+            helix.comment = row.details
+            helix.length = row.pdbx_PDB_helix_length
+            helices.append(helix)
+        return helices
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -333,6 +412,35 @@ class Link(BaseRecord):
         self.ins_code2 = None
         self.sym1 = None
         self.sym2 = None
+
+    @staticmethod
+    def parse_cif(container) -> list:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  list of :class:`SequenceDifferences` objects
+        """
+        links = []
+        df = cif_df(container.get_object("struct_conn"))
+        for _, row in df.iterrows():
+            link = Link()
+            link.name1 = row["ptnr1_label_atom_id"]
+            link.alt_loc1 = row["pdbx_ptnr1_label_alt_id"]
+            link.res_name1 = row["ptnr1_auth_comp_id"]
+            link.chain_id1 = row["ptnr1_auth_asym_id"]
+            link.res_seq1 = row["ptnr1_auth_seq_id"]
+            link.ins_code1 = row["pdbx_ptnr1_PDB_ins_code"]
+            link.name2 = row["ptnr2_label_atom_id"]
+            link.alt_loc2 = row["pdbx_ptnr2_label_alt_id"]
+            link.res_name2 = row["ptnr2_auth_comp_id"]
+            link.chain_id2 = row["ptnr2_auth_asym_id"]
+            link.res_seq2 = row["ptnr2_auth_seq_id"]
+            link.ins_code2 = row["pdbx_ptnr2_PDB_ins_code"]
+            link.sym1 = row["ptnr1_symmetry"]
+            link.sym2 = row["ptnr2_symmetry"]
+            links.append(link)
+        return links
 
     def parse_line(self, line):
         """Parse PDB-format line.
@@ -474,7 +582,7 @@ class Sheet(BaseRecord):
 
     def __init__(self):
         super().__init__()
-        self.strand = None
+        self.range_id = None
         self.sheet_id = None
         self.num_strands = None
         self.init_res_name = None
@@ -486,7 +594,7 @@ class Sheet(BaseRecord):
         self.end_seq_num = None
         self.end_ins_code = None
         self.sense = None
-        self.cur_atom = ""
+        self.curr_atom = ""
         self.curr_res_name = ""
         self.curr_chain_id = ""
         self.curr_res_seq = ""
@@ -497,13 +605,117 @@ class Sheet(BaseRecord):
         self.prev_res_seq = ""
         self.prev_ins_code = ""
 
+    @staticmethod
+    def parse_cif(container) -> list:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  list of :class:`SequenceDifferences` objects
+        """
+        sheets = []
+        hbond_df = cif_df(container.get_object("pdbx_struct_sheet_hbond"))
+        range_df = cif_df(container.get_object("struct_sheet_range"))
+        order_df = cif_df(container.get_object("struct_sheet_order"))
+        sheet_df = cif_df(container.get_object("struct_sheet"))
+        sheet_ids = sorted(
+            list(
+                set(hbond_df["sheet_id"])
+                | set(sheet_df["id"])
+                | set(order_df["sheet_id"])
+                | set(range_df["sheet_id"])
+            )
+        )
+        range_ids = sorted(
+            list(
+                set(hbond_df["range_id_2"])
+                | set(order_df["range_id_1"])
+                | set(order_df["range_id_2"])
+                | set(range_df["id"])
+            )
+        )
+        for sheet_id in sheet_ids:
+            num_strands = sheet_df[sheet_df["id"] == sheet_id][
+                "number_strands"
+            ].values[0]
+            for range_id in range_ids:
+                sheet = Sheet()
+                sheet.range_id = range_id
+                sheet.sheet_id = sheet_id
+                sheet.num_strands = num_strands
+                range_row = range_df[
+                    (range_df["sheet_id"] == sheet_id)
+                    & (range_df["id"] == range_id)
+                ]
+                if len(range_row) == 0:
+                    continue
+                sheet.init_res_name = range_row["beg_auth_comp_id"].values[0]
+                sheet.init_chain_id = range_row["beg_auth_asym_id"].values[0]
+                sheet.init_seq_num = range_row["beg_auth_seq_id"].values[0]
+                sheet.init_ins_code = range_row[
+                    "pdbx_beg_PDB_ins_code"
+                ].values[0]
+                sheet.end_res_name = range_row["end_auth_comp_id"].values[0]
+                sheet.end_chain_id = range_row["end_auth_asym_id"].values[0]
+                sheet.end_seq_num = range_row["end_auth_seq_id"].values[0]
+                sheet.end_ins_code = range_row[
+                    "pdbx_end_PDB_ins_code"
+                ].values[0]
+                order_row = order_df[
+                    (order_df["sheet_id"] == sheet_id)
+                    & (order_df["range_id_1"] == range_id)
+                ]
+                if len(order_row) == 0:
+                    order_row = order_df[
+                        (order_df["sheet_id"] == sheet_id)
+                        & (order_df["range_id_2"] == range_id)
+                    ]
+                sheet.sense = order_row["sense"].values[0]
+                hbond_row = hbond_df[
+                    (hbond_df["sheet_id"] == sheet_id)
+                    & (hbond_df["range_id_1"] == range_id)
+                ]
+                if len(hbond_row) == 0:
+                    hbond_row = hbond_df[
+                        (hbond_df["sheet_id"] == sheet_id)
+                        & (hbond_df["range_id_2"] == range_id)
+                    ]
+                sheet.curr_atom = hbond_row["range_2_auth_atom_id"].values[0]
+                sheet.curr_res_name = hbond_row[
+                    "range_2_auth_comp_id"
+                ].values[0]
+                sheet.curr_chain_id = hbond_row[
+                    "range_2_auth_asym_id"
+                ].values[0]
+                sheet.curr_res_seq = hbond_row["range_2_auth_seq_id"].values[
+                    0
+                ]
+                sheet.curr_ins_code = hbond_row[
+                    "range_2_PDB_ins_code"
+                ].values[0]
+                sheet.prev_atom = hbond_row["range_1_auth_atom_id"].values[0]
+                sheet.prev_res_name = hbond_row[
+                    "range_1_auth_comp_id"
+                ].values[0]
+                sheet.prev_chain_id = hbond_row[
+                    "range_1_auth_asym_id"
+                ].values[0]
+                sheet.prev_res_name = hbond_row["range_1_auth_seq_id"].values[
+                    0
+                ]
+                sheet.prev_ins_code = hbond_row[
+                    "range_1_PDB_ins_code"
+                ].values[0]
+                sheets.append(sheet)
+        return sheets
+
     def parse_line(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
         super().parse_line(line)
-        self.strand = int(line[7:10].strip())
+        self.range_id = int(line[7:10].strip())
         self.sheet_id = line[11:14].strip()
         self.num_strands = int(line[14:16].strip())
         self.init_res_name = line[17:20].strip()
@@ -515,7 +727,7 @@ class Sheet(BaseRecord):
         self.end_seq_num = int(line[33:37].strip())
         self.end_ins_code = line[37].strip()
         self.sense = int(line[38:40].strip())
-        self.cur_atom = line[41:45].strip()
+        self.curr_atom = line[41:45].strip()
         self.curr_res_name = line[45:48].strip()
         try:
             self.curr_chain_id = line[49].strip()
@@ -537,16 +749,16 @@ class Sheet(BaseRecord):
 
     def __str__(self):
         string = (
-            f"SHEET  {self.strand:3} {self.sheet_id:>3}{self.num_strands:2}"
+            f"SHEET  {self.range_id:3} {self.sheet_id:>3}{self.num_strands:2}"
             f" {self.init_res_name:3} {self.init_chain_id:1}"
             f"{self.init_seq_num:4}{self.init_ins_code:1} {self.end_res_name:3}"
             f" {self.end_chain_id:1}{self.end_seq_num:4}{self.end_ins_code:1}"
             f"{self.sense:2}"
         )
-        if len(self.cur_atom) == 1:
-            string += f"  {self.cur_atom:3}"
+        if len(self.curr_atom) == 1:
+            string += f"  {self.curr_atom:3}"
         else:
-            string += f" {self.cur_atom:4}"
+            string += f" {self.curr_atom:4}"
         string += f"{self.curr_res_name:3} "
         string += f"{self.curr_chain_id:1}"
         string += f"{self.curr_res_seq:4}"

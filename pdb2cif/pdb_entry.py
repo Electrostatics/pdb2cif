@@ -6,9 +6,6 @@ Contents Guide: Atomic Coordinate Entry Format Description, Version 3.3
 
 .. codeauthor::  Nathan Baker
 """
-from pdb2cif.primary import DatabaseReference
-from pdb2cif.secondary import Helix
-from pdb2cif.heterogen import HeterogenSynonym
 import logging
 import pdbx
 from . import annotation, primary, heterogen, secondary, coordinates
@@ -100,80 +97,81 @@ class Entry:
             container = containers[0]
         header = annotation.Header()
         if header.parse_cif(container):
-            _LOGGER.debug(header)
             self._header = header
         obsolete = annotation.Obsolete()
         if obsolete.parse_cif(container):
-            _LOGGER.debug(obsolete)
             self._obsolete = obsolete
         self.parse_cif_title(container)
         split = annotation.Split()
         if split.parse_cif(container):
-            _LOGGER.debug(split)
             self._split = split
         caveat = annotation.Caveat()
         if caveat.parse_cif(container):
-            _LOGGER.debug(caveat)
             self._caveat = caveat
         compound = annotation.Compound()
         if compound.parse_cif(container):
-            _LOGGER.debug(compound)
             self._compound = compound
         source = annotation.Source()
         if source.parse_cif(container):
-            _LOGGER.debug(source)
             self._source = source
         keywords = annotation.Keywords()
         if keywords.parse_cif(container):
-            _LOGGER.debug(keywords)
             self._keyword = keywords
         exp_data = annotation.ExperimentalData()
         if exp_data.parse_cif(container):
-            _LOGGER.debug(exp_data)
             self._experimental_data = exp_data
         model_type = annotation.ModelType()
         if model_type.parse_cif(container):
-            _LOGGER.debug(model_type)
             self._model_type = model_type
         authors = annotation.Author()
         if authors.parse_cif(container):
-            _LOGGER.debug(authors)
             self._author = authors
         rev_data = annotation.RevisionData()
         if rev_data.parse_cif(container):
-            _LOGGER.debug(rev_data)
             self._revision_data = rev_data
         supersedes = annotation.Supersedes()
         if supersedes.parse_cif(container):
-            _LOGGER.debug(supersedes)
             self._supersedes = supersedes
         journals = annotation.Journal.parse_cif(container)
         self._journal = journals
-        for journal in journals:
-            _LOGGER.debug(journal)
         _LOGGER.warning("Not parsing REMARK records from CIF.")
-        db_refs = primary.DatabaseReference().parse_cif(container)
+        db_refs = primary.DatabaseReference.parse_cif(container)
         self._database_reference = db_refs
-        for ref in db_refs:
-            _LOGGER.debug(ref)
-        sequence_diffs = primary.SequenceDifferences().parse_cif(container)
+        sequence_diffs = primary.SequenceDifferences.parse_cif(container)
         self._sequence_difference = sequence_diffs
-        for diff in sequence_diffs:
-            _LOGGER.debug(diff)
         sequence_residues = primary.SequenceResidues()
         if sequence_residues.parse_cif(container):
             self._sequence_residue = sequence_residues
-            # _LOGGER.debug(sequence_residues)
-        modified_residues = primary.ModifiedResidue().parse_cif(container)
+        modified_residues = primary.ModifiedResidue.parse_cif(container)
         if modified_residues:
             self._modified_residue = modified_residues
-            for res in self._modified_residue:
-                _LOGGER.debug(res)
         heterogens = heterogen.Heterogen.parse_cif(container)
         if heterogens:
             self._heterogen = heterogens
-            for het in self._heterogen:
-                _LOGGER.debug(het)
+        het_name = heterogen.HeterogenName()
+        if het_name.parse_cif(container):
+            self._heterogen_name = het_name
+        het_syn = heterogen.HeterogenSynonym()
+        if het_syn.parse_cif(container):
+            self._heterogen_synonym
+        formula = heterogen.Formula()
+        if formula.parse_cif(container):
+            self._heterogen_formula = formula
+        helices = secondary.Helix.parse_cif(container)
+        if helices:
+            self._helix = helices
+        sheets = secondary.Sheet.parse_cif(container)
+        if sheets:
+            self._sheet = sheets
+        disulfides = secondary.DisulfideBond.parse_cif(container)
+        if disulfides:
+            self._disulfide_bond = disulfides
+        links = secondary.Link.parse_cif(container)
+        if links:
+            self._link = links
+        cis_peps = secondary.CisPeptide.parse_cif(container)
+        if cis_peps:
+            self._cis_peptide = cis_peps
         raise NotImplementedError()
 
     @property

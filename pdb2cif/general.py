@@ -17,7 +17,8 @@ DATE_FMT = r"%d-%b-%y"
 def grouper(iterable, block_size, fillvalue=None) -> list:
     """Group an iterable into chunks of block_size.
 
-    Adapted from https://docs.python.org/3/library/itertools.html#itertools-recipes.
+    Adapted from
+    https://docs.python.org/3/library/itertools.html#itertools-recipes.
 
     :param list iterable:  list to break into chunks
     :param int block_size:  chunk size

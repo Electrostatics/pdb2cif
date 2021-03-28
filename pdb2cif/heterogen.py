@@ -122,6 +122,19 @@ class HeterogenName(BaseRecord):
         super().__init__()
         self.heterogens = OrderedDict()
 
+    def parse_cif(self, container) -> bool:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  True if useful information was extracted from container
+        """
+        value_added = False
+        df = cif_df(container.get_object("comp_name"))
+        if len(df) > 0:
+            raise NotImplementedError()
+        return value_added
+
     def parse_line(self, line):
         """Parse PDB-format line.
 
@@ -175,6 +188,19 @@ class HeterogenSynonym(BaseRecord):
         super().__init__()
         self.synonyms = OrderedDict()
 
+    def parse_cif(self, container) -> bool:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  True if useful information was extracted from container
+        """
+        value_added = False
+        df = cif_df(container.get_object("comp_name"))
+        if len(df) > 0:
+            raise NotImplementedError(str(df))
+        return value_added
+
     def parse_line(self, line):
         super().parse_line(line)
         het_id = line[11:14].strip()
@@ -221,6 +247,19 @@ class Formula(BaseRecord):
     def __init__(self):
         super().__init__()
         self._components = OrderedDict()
+
+    def parse_cif(self, container) -> bool:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  True if useful information was extracted from container
+        """
+        value_added = False
+        df = cif_df(container.get_object("comp_name"))
+        if len(df) > 0:
+            raise NotImplementedError(str(df))
+        return value_added
 
     @property
     def components(self) -> dict:
