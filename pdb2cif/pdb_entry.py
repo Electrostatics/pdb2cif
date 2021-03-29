@@ -155,9 +155,7 @@ class Entry:
         helices = secondary.Helix.parse_cif(container)
         if helices:
             self._helix = helices
-        sheets = secondary.Sheet.parse_cif(container)
-        if sheets:
-            self._sheet = sheets
+        _LOGGER.warning("Not parsing SHEET records from CIF.")
         disulfides = secondary.DisulfideBond.parse_cif(container)
         if disulfides:
             self._disulfide_bond = disulfides

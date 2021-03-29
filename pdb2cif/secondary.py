@@ -70,20 +70,20 @@ class CisPeptide(BaseRecord):
         :returns:  list of objects of this class
         """
         cis_peps = []
-        df = cif_df(container.get_object("struct_mon_prot_cis"))
+        df = cif_df(container.get_object("struct_mon_prot_cis")).fillna("")
         for _, row in df.iterrows():
             pep = CisPeptide()
-            pep.ser_num = row["pdbx_id"]
+            pep.ser_num = int(row["pdbx_id"])
             pep.pep1 = row["auth_comp_id"]
             pep.chain_id1 = row["auth_asym_id"]
-            pep.seq_num1 = row["auth_seq_id"]
+            pep.seq_num1 = int(row["auth_seq_id"])
             pep.icode1 = row["pdbx_PDB_ins_code"]
             pep.pep2 = row["pdbx_auth_comp_id_2"]
             pep.chain_id2 = row["pdbx_auth_asym_id_2"]
-            pep.chain_id2 = row["pdbx_auth_seq_id_2"]
+            pep.seq_num2 = int(row["pdbx_auth_seq_id_2"])
             pep.icode2 = row["pdbx_PDB_ins_code_2"]
-            pep.mod_num = row["pdbx_PDB_model_num"]
-            pep.measure = row["pdbx_omega_angle"]
+            pep.mod_num = int(row["pdbx_PDB_model_num"])
+            pep.measure = float(row["pdbx_omega_angle"])
             cis_peps.append(pep)
         return cis_peps
 
@@ -106,12 +106,11 @@ class CisPeptide(BaseRecord):
         self.measure = float(line[53:59].strip())
 
     def __str__(self):
-        return (
-            f"CISPEP {self.ser_num:3} {self.pep1:3} {self.chain_id1:1}"
-            f" {self.seq_num1:4}{self.icode1:1}   {self.pep2:3}"
-            f" {self.chain_id2:1} {self.seq_num2:4}{self.icode2:1}"
-            f"       {self.mod_num:3}       {self.measure:6.2f}"
-        )
+        str_ = f"CISPEP {self.ser_num:3} {self.pep1:3} {self.chain_id1:1}"
+        str_ += f" {self.seq_num1:4}{self.icode1:1}   {self.pep2:3}"
+        str_ += f" {self.chain_id2:1} {self.seq_num2:4}{self.icode2:1}"
+        str_ += f"       {self.mod_num:3}       {self.measure:6.2f}"
+        return str_
 
 
 class DisulfideBond(BaseRecord):
@@ -609,121 +608,121 @@ class Sheet(BaseRecord):
         self.prev_res_seq = ""
         self.prev_ins_code = ""
 
-    @staticmethod
-    def parse_cif(container) -> list:
-        """Parse CIF container for information about this record.
+    # @staticmethod
+    # def parse_cif(container) -> list:
+    #     """Parse CIF container for information about this record.
 
-        :param :class:`pdbx.containers.DataContainer` container:  container to
-            parse
-        :returns:  list of objects of this class
-        """
-        sheets = []
-        hbond_df = cif_df(
-            container.get_object("pdbx_struct_sheet_hbond")
-        ).fillna("")
-        range_df = cif_df(container.get_object("struct_sheet_range")).fillna(
-            ""
-        )
-        order_df = cif_df(container.get_object("struct_sheet_order")).fillna(
-            ""
-        )
-        sheet_df = cif_df(container.get_object("struct_sheet")).fillna("")
-        sheet_ids = set()
-        range_ids = set()
-        if len(hbond_df) > 0:
-            sheet_ids |= set(hbond_df["sheet_id"])
-            range_ids |= set(hbond_df["range_id_2"])
-        if len(sheet_df) > 0:
-            sheet_ids |= set(sheet_df["id"])
-        if len(order_df) > 0:
-            sheet_ids |= set(order_df["sheet_id"])
-            range_ids |= set(order_df["range_id_1"])
-            range_ids |= set(order_df["range_id_2"])
-        if len(range_df) > 0:
-            sheet_ids |= set(range_df["sheet_id"])
-            range_ids |= set(range_df["id"])
-        sheet_ids = sorted(list(sheet_ids))
-        range_ids = sorted(list(range_ids))
-        for sheet_id in sheet_ids:
-            num_strands = sheet_df[sheet_df["id"] == sheet_id][
-                "number_strands"
-            ].values[0]
-            for range_id in range_ids:
-                sheet = Sheet()
-                sheet.range_id = range_id
-                sheet.sheet_id = sheet_id
-                sheet.num_strands = num_strands
-                range_row = range_df[
-                    (range_df["sheet_id"] == sheet_id)
-                    & (range_df["id"] == range_id)
-                ]
-                if len(range_row) == 0:
-                    continue
-                sheet.init_res_name = range_row["beg_auth_comp_id"].values[0]
-                sheet.init_chain_id = range_row["beg_auth_asym_id"].values[0]
-                sheet.init_seq_num = range_row["beg_auth_seq_id"].values[0]
-                sheet.init_ins_code = range_row[
-                    "pdbx_beg_PDB_ins_code"
-                ].values[0]
-                sheet.end_res_name = range_row["end_auth_comp_id"].values[0]
-                sheet.end_chain_id = range_row["end_auth_asym_id"].values[0]
-                sheet.end_seq_num = range_row["end_auth_seq_id"].values[0]
-                sheet.end_ins_code = range_row[
-                    "pdbx_end_PDB_ins_code"
-                ].values[0]
-                order_row = order_df[
-                    (order_df["sheet_id"] == sheet_id)
-                    & (order_df["range_id_1"] == range_id)
-                ]
-                if len(order_row) == 0:
-                    order_row = order_df[
-                        (order_df["sheet_id"] == sheet_id)
-                        & (order_df["range_id_2"] == range_id)
-                    ]
-                sense = order_row["sense"].values[0]
-                if sense == "parallel":
-                    sheet.sense = 1
-                elif sense == "anti-parallel":
-                    sheet.sense = -1
-                else:
-                    raise NotImplementedError(sense)
-                hbond_row = hbond_df[
-                    (hbond_df["sheet_id"] == sheet_id)
-                    & (hbond_df["range_id_1"] == range_id)
-                ]
-                if len(hbond_row) == 0:
-                    hbond_row = hbond_df[
-                        (hbond_df["sheet_id"] == sheet_id)
-                        & (hbond_df["range_id_2"] == range_id)
-                    ]
-                sheet.curr_atom = hbond_row["range_2_auth_atom_id"].values[0]
-                sheet.curr_res_name = hbond_row[
-                    "range_2_auth_comp_id"
-                ].values[0]
-                sheet.curr_chain_id = hbond_row[
-                    "range_2_auth_asym_id"
-                ].values[0]
-                sheet.curr_res_seq = hbond_row["range_2_auth_seq_id"].values[
-                    0
-                ]
-                sheet.curr_ins_code = hbond_row[
-                    "range_2_PDB_ins_code"
-                ].values[0]
-                sheet.prev_atom = hbond_row["range_1_auth_atom_id"].values[0]
-                sheet.prev_res_name = hbond_row[
-                    "range_1_auth_comp_id"
-                ].values[0]
-                sheet.prev_chain_id = hbond_row[
-                    "range_1_auth_asym_id"
-                ].values[0]
-                sheet.prev_res_name = hbond_row["range_1_auth_seq_id"].values[
-                    0
-                ]
-                sheet.prev_ins_code = hbond_row[
-                    "range_1_PDB_ins_code"
-                ].values[0]
-                sheets.append(sheet)
-        return sheets
+    #     :param :class:`pdbx.containers.DataContainer` container:  container to
+    #         parse
+    #     :returns:  list of objects of this class
+    #     """
+    #     sheets = []
+    #     hbond_df = cif_df(
+    #         container.get_object("pdbx_struct_sheet_hbond")
+    #     ).fillna("")
+    #     range_df = cif_df(container.get_object("struct_sheet_range")).fillna(
+    #         ""
+    #     )
+    #     order_df = cif_df(container.get_object("struct_sheet_order")).fillna(
+    #         ""
+    #     )
+    #     sheet_df = cif_df(container.get_object("struct_sheet")).fillna("")
+    #     sheet_ids = set()
+    #     range_ids = set()
+    #     if len(hbond_df) > 0:
+    #         sheet_ids |= set(hbond_df["sheet_id"])
+    #         range_ids |= set(hbond_df["range_id_2"])
+    #     if len(sheet_df) > 0:
+    #         sheet_ids |= set(sheet_df["id"])
+    #     if len(order_df) > 0:
+    #         sheet_ids |= set(order_df["sheet_id"])
+    #         range_ids |= set(order_df["range_id_1"])
+    #         range_ids |= set(order_df["range_id_2"])
+    #     if len(range_df) > 0:
+    #         sheet_ids |= set(range_df["sheet_id"])
+    #         range_ids |= set(range_df["id"])
+    #     sheet_ids = sorted(list(sheet_ids))
+    #     range_ids = sorted(list(range_ids))
+    #     for sheet_id in sheet_ids:
+    #         num_strands = sheet_df[sheet_df["id"] == sheet_id][
+    #             "number_strands"
+    #         ].values[0]
+    #         for range_id in range_ids:
+    #             sheet = Sheet()
+    #             sheet.range_id = range_id
+    #             sheet.sheet_id = sheet_id
+    #             sheet.num_strands = num_strands
+    #             range_row = range_df[
+    #                 (range_df["sheet_id"] == sheet_id)
+    #                 & (range_df["id"] == range_id)
+    #             ]
+    #             if len(range_row) == 0:
+    #                 continue
+    #             sheet.init_res_name = range_row["beg_auth_comp_id"].values[0]
+    #             sheet.init_chain_id = range_row["beg_auth_asym_id"].values[0]
+    #             sheet.init_seq_num = range_row["beg_auth_seq_id"].values[0]
+    #             sheet.init_ins_code = range_row[
+    #                 "pdbx_beg_PDB_ins_code"
+    #             ].values[0]
+    #             sheet.end_res_name = range_row["end_auth_comp_id"].values[0]
+    #             sheet.end_chain_id = range_row["end_auth_asym_id"].values[0]
+    #             sheet.end_seq_num = range_row["end_auth_seq_id"].values[0]
+    #             sheet.end_ins_code = range_row[
+    #                 "pdbx_end_PDB_ins_code"
+    #             ].values[0]
+    #             order_row = order_df[
+    #                 (order_df["sheet_id"] == sheet_id)
+    #                 & (order_df["range_id_1"] == range_id)
+    #             ]
+    #             if len(order_row) == 0:
+    #                 order_row = order_df[
+    #                     (order_df["sheet_id"] == sheet_id)
+    #                     & (order_df["range_id_2"] == range_id)
+    #                 ]
+    #             sense = order_row["sense"].values[0]
+    #             if sense == "parallel":
+    #                 sheet.sense = 1
+    #             elif sense == "anti-parallel":
+    #                 sheet.sense = -1
+    #             else:
+    #                 raise NotImplementedError(sense)
+    #             hbond_row = hbond_df[
+    #                 (hbond_df["sheet_id"] == sheet_id)
+    #                 & (hbond_df["range_id_1"] == range_id)
+    #             ]
+    #             if len(hbond_row) == 0:
+    #                 hbond_row = hbond_df[
+    #                     (hbond_df["sheet_id"] == sheet_id)
+    #                     & (hbond_df["range_id_2"] == range_id)
+    #                 ]
+    #             sheet.curr_atom = hbond_row["range_2_auth_atom_id"].values[0]
+    #             sheet.curr_res_name = hbond_row[
+    #                 "range_2_auth_comp_id"
+    #             ].values[0]
+    #             sheet.curr_chain_id = hbond_row[
+    #                 "range_2_auth_asym_id"
+    #             ].values[0]
+    #             sheet.curr_res_seq = hbond_row["range_2_auth_seq_id"].values[
+    #                 0
+    #             ]
+    #             sheet.curr_ins_code = hbond_row[
+    #                 "range_2_PDB_ins_code"
+    #             ].values[0]
+    #             sheet.prev_atom = hbond_row["range_1_auth_atom_id"].values[0]
+    #             sheet.prev_res_name = hbond_row[
+    #                 "range_1_auth_comp_id"
+    #             ].values[0]
+    #             sheet.prev_chain_id = hbond_row[
+    #                 "range_1_auth_asym_id"
+    #             ].values[0]
+    #             sheet.prev_res_name = hbond_row["range_1_auth_seq_id"].values[
+    #                 0
+    #             ]
+    #             sheet.prev_ins_code = hbond_row[
+    #                 "range_1_PDB_ins_code"
+    #             ].values[0]
+    #             sheets.append(sheet)
+    #     return sheets
 
     def parse_pdb(self, line):
         """Parse PDB-format line.

@@ -290,7 +290,7 @@ class Atom(BaseRecord):
 
     def __str__(self):
         return (
-            f"ATOM  {self.serial:5} {atom_format(self)}{self.alt_loc:1}"
+            f"ATOM  {self.serial:>5} {atom_format(self)}{self.alt_loc:1}"
             f"{self.res_name:>3} {self.chain_id:1}{self.res_seq:4}"
             f"{self.ins_code:1}   {self.x:8.3f}{self.y:8.3f}"
             f"{self.z:8.3f}{self.occupancy:6.2f}{self.temp_factor:6.2f}"
@@ -589,7 +589,7 @@ class HeterogenAtom(BaseRecord):
 
     def __str__(self):
         return (
-            f"HETATM{self.serial:5} {atom_format(self)}{self.alt_loc:1}"
+            f"HETATM{self.serial:>5} {atom_format(self)}{self.alt_loc:1}"
             f"{self.res_name:>3} {self.chain_id:1}{self.res_seq:4}"
             f"{self.ins_code:1}   {self.x:8.3f}{self.y:8.3f}{self.z:8.3f}"
             f"{self.occupancy:6.2f}{self.temp_factor:6.2f}"
