@@ -17,6 +17,8 @@ def test_cif(pdb_id):
     cif_file = get_cif(pdb_id)
     entry = Entry()
     entry.parse_cif_file(cif_file)
+    print(entry)
+    raise NotImplementedError()
 
     new_strings = [line.strip() for line in str(entry).splitlines()]
     old_strings = [line.strip() for line in get_pdb(pdb_id).readlines()]

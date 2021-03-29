@@ -153,12 +153,12 @@ class DatabaseReference(BaseRecord):
                 db_refs.append(ref2)
         return db_refs
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse DBREF line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.id_code = line[7:11].strip()
         self.chain_id = line[12].strip()
         self.seq_begin = int(line[14:18])
@@ -233,12 +233,12 @@ class DatabaseReference1(BaseRecord):
         self.database = None
         self.database_id_code = None
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line with PDB class
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.id_code = line[7:11].strip()
         self.chain_id = line[12].strip()
         self.seq_begin = int(line[14:18])
@@ -295,12 +295,12 @@ class DatabaseReference2(BaseRecord):
         self.database_seq_begin = None
         self.database_seq_end = None
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.id_code = line[7:11].strip()
         self.chain_id = line[12].strip()
         self.database_accession = line[18:40].strip()
@@ -361,7 +361,7 @@ class ModifiedResidue(BaseRecord):
 
         :param :class:`pdbx.containers.DataContainer` container:  container to
             parse
-        :returns:  list of :class:`SequenceDifferences` objects
+        :returns:  list of objects of this class
         """
         mod_res = []
         df = cif_df(container.get_object("pdbx_struct_mod_residue"))
@@ -369,12 +369,12 @@ class ModifiedResidue(BaseRecord):
             raise NotImplementedError("MODRES parsing not implemented.")
         return mod_res
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.id_code = line[7:11].strip()
         self.residue_name = line[12:15].strip()
         self.chain_id = line[16].strip()
@@ -451,7 +451,7 @@ class SequenceDifferences(BaseRecord):
 
         :param :class:`pdbx.containers.DataContainer` container:  container to
             parse
-        :returns:  list of :class:`SequenceDifferences` objects
+        :returns:  list of objects of this class
         """
         diffs = []
         cif_obj = container.get_object("struct_ref_seq_dif")
@@ -461,12 +461,12 @@ class SequenceDifferences(BaseRecord):
         print(df)
         raise NotImplementedError()
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.id_code = line[7:11].strip()
         self.res_name = line[12:15].strip()
         self.chain_id = line[16].strip()
@@ -583,18 +583,20 @@ class SequenceResidues(BaseRecord):
             raise NotImplementedError(
                 "Parsing entity_poly_seq not implemented."
             )
+        for chain, residues in self._residues.items():
+            self.num_residues[chain] = len(residues)
         return value_added
 
     @residues.setter
     def residues(self, value):
         self._residues = value
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         chain_id = line[11].strip()
         if chain_id not in self._residues:
             self._residues[chain_id] = []
@@ -620,6 +622,7 @@ class SequenceResidues(BaseRecord):
                 string = f"SEQRES {serial_num:>3} {chain_id:1} "
                 string += f"{self.num_residues[chain_id]:>4} "
                 for residue in chunk:
-                    string += f" {residue:>3}"
+                    if residue is not None:
+                        string += f" {residue:>3}"
                 strings.append(string.strip())
         return "\n".join(strings)

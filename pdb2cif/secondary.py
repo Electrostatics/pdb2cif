@@ -67,7 +67,7 @@ class CisPeptide(BaseRecord):
 
         :param :class:`pdbx.containers.DataContainer` container:  container to
             parse
-        :returns:  list of :class:`SequenceDifferences` objects
+        :returns:  list of objects of this class
         """
         cis_peps = []
         df = cif_df(container.get_object("struct_mon_prot_cis"))
@@ -87,12 +87,12 @@ class CisPeptide(BaseRecord):
             cis_peps.append(pep)
         return cis_peps
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.ser_num = int(line[7:10].strip())
         self.pep1 = line[11:14].strip()
         self.chain_id1 = line[15].strip()
@@ -171,7 +171,7 @@ class DisulfideBond(BaseRecord):
 
         :param :class:`pdbx.containers.DataContainer` container:  container to
             parse
-        :returns:  list of :class:`SequenceDifferences` objects
+        :returns:  list of objects of this class
         """
         bonds = []
         df = cif_df(container.get_object("struct_conn"))
@@ -190,12 +190,12 @@ class DisulfideBond(BaseRecord):
             bonds.append(bond)
         return bonds
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.ser_num = int(line[7:10].strip())
         self.chain_id1 = line[15].strip()
         self.seq_num1 = int(line[17:21].strip())
@@ -290,34 +290,35 @@ class Helix(BaseRecord):
 
         :param :class:`pdbx.containers.DataContainer` container:  container to
             parse
-        :returns:  list of :class:`SequenceDifferences` objects
+        :returns:  list of objects of this class
         """
         helices = []
         df = cif_df(container.get_object("struct_conf"))
+        df = df.fillna("")
         for _, row in df.iterrows():
             helix = Helix()
-            helix.ser_num = row.id
-            helix.helix_id = row.pdbx_PDB_helix_id
-            helix.init_res_name = row.beg_auth_comp_id
-            helix.init_chain_id = row.beg_auth_asym_id
-            helix.init_seq_num = row.beg_auth_seq_id
-            helix.init_i_code = row.pdbx_beg_PDB_ins_code
-            helix.end_res_name = row.end_auth_comp_id
-            helix.end_chain_id = row.end_auth_asym_id
-            helix.end_seq_num = row.end_auth_seq_id
-            helix.end_i_code = row.pdbx_end_PDB_ins_code
-            helix.helix_class = row.pdbx_PDB_helix_class
-            helix.comment = row.details
-            helix.length = row.pdbx_PDB_helix_length
+            helix.ser_num = row["pdbx_PDB_helix_id"]
+            helix.helix_id = row["pdbx_PDB_helix_id"]
+            helix.init_res_name = row["beg_auth_comp_id"]
+            helix.init_chain_id = row["beg_auth_asym_id"]
+            helix.init_seq_num = row["beg_auth_seq_id"]
+            helix.init_i_code = row["pdbx_beg_PDB_ins_code"]
+            helix.end_res_name = row["end_auth_comp_id"]
+            helix.end_chain_id = row["end_auth_asym_id"]
+            helix.end_seq_num = row["end_auth_seq_id"]
+            helix.end_i_code = row["pdbx_end_PDB_ins_code"]
+            helix.helix_class = row["pdbx_PDB_helix_class"]
+            helix.comment = row["details"]
+            helix.length = row["pdbx_PDB_helix_length"]
             helices.append(helix)
         return helices
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.ser_num = int(line[7:10].strip())
         self.helix_id = line[11:14].strip()
         self.init_res_name = line[15:18].strip()
@@ -419,7 +420,7 @@ class Link(BaseRecord):
 
         :param :class:`pdbx.containers.DataContainer` container:  container to
             parse
-        :returns:  list of :class:`SequenceDifferences` objects
+        :returns:  list of objects of this class
         """
         links = []
         df = cif_df(container.get_object("struct_conn"))
@@ -442,12 +443,12 @@ class Link(BaseRecord):
             links.append(link)
         return links
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.name1 = line[12:16].strip()
         self.alt_loc1 = line[16].strip()
         self.res_name1 = line[17:20].strip()
@@ -611,13 +612,19 @@ class Sheet(BaseRecord):
 
         :param :class:`pdbx.containers.DataContainer` container:  container to
             parse
-        :returns:  list of :class:`SequenceDifferences` objects
+        :returns:  list of objects of this class
         """
         sheets = []
-        hbond_df = cif_df(container.get_object("pdbx_struct_sheet_hbond"))
-        range_df = cif_df(container.get_object("struct_sheet_range"))
-        order_df = cif_df(container.get_object("struct_sheet_order"))
-        sheet_df = cif_df(container.get_object("struct_sheet"))
+        hbond_df = cif_df(
+            container.get_object("pdbx_struct_sheet_hbond")
+        ).fillna("")
+        range_df = cif_df(container.get_object("struct_sheet_range")).fillna(
+            ""
+        )
+        order_df = cif_df(container.get_object("struct_sheet_order")).fillna(
+            ""
+        )
+        sheet_df = cif_df(container.get_object("struct_sheet")).fillna("")
         sheet_ids = sorted(
             list(
                 set(hbond_df["sheet_id"])
@@ -670,7 +677,13 @@ class Sheet(BaseRecord):
                         (order_df["sheet_id"] == sheet_id)
                         & (order_df["range_id_2"] == range_id)
                     ]
-                sheet.sense = order_row["sense"].values[0]
+                sense = order_row["sense"].values[0]
+                if sense == "parallel":
+                    sheet.sense = 1
+                elif sense == "anti-parallel":
+                    sheet.sense = -1
+                else:
+                    raise NotImplementedError(sense)
                 hbond_row = hbond_df[
                     (hbond_df["sheet_id"] == sheet_id)
                     & (hbond_df["range_id_1"] == range_id)
@@ -709,12 +722,12 @@ class Sheet(BaseRecord):
                 sheets.append(sheet)
         return sheets
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.range_id = int(line[7:10].strip())
         self.sheet_id = line[11:14].strip()
         self.num_strands = int(line[14:16].strip())
@@ -749,10 +762,10 @@ class Sheet(BaseRecord):
 
     def __str__(self):
         string = (
-            f"SHEET  {self.range_id:3} {self.sheet_id:>3}{self.num_strands:2}"
+            f"SHEET  {self.range_id:3} {self.sheet_id:>3}{self.num_strands:>2}"
             f" {self.init_res_name:3} {self.init_chain_id:1}"
-            f"{self.init_seq_num:4}{self.init_ins_code:1} {self.end_res_name:3}"
-            f" {self.end_chain_id:1}{self.end_seq_num:4}{self.end_ins_code:1}"
+            f"{self.init_seq_num:>4}{self.init_ins_code:1} {self.end_res_name:3}"
+            f" {self.end_chain_id:1}{self.end_seq_num:>4}{self.end_ins_code:1}"
             f"{self.sense:2}"
         )
         if len(self.curr_atom) == 1:
@@ -761,7 +774,7 @@ class Sheet(BaseRecord):
             string += f" {self.curr_atom:4}"
         string += f"{self.curr_res_name:3} "
         string += f"{self.curr_chain_id:1}"
-        string += f"{self.curr_res_seq:4}"
+        string += f"{self.curr_res_seq:>4}"
         string += f"{self.curr_ins_code:1}"
         if len(self.prev_atom) == 1:
             string += f"  {self.prev_atom:3}"

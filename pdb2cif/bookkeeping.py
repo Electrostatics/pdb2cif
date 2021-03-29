@@ -5,7 +5,7 @@
 .. codeauthor::  Nathan Baker
 """
 import logging
-from .general import BaseRecord
+from .general import BaseRecord, cif_df
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -43,12 +43,12 @@ class Connection(BaseRecord):
         super().__init__()
         self.serial = []
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         if line is None:
             line = ""
         istart = 6
@@ -122,12 +122,12 @@ class Master(BaseRecord):
         self.num_conect = None
         self.num_seq = None
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse a PDB-format line
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.num_remark = int(line[10:15].strip())
         self.num_het = int(line[20:25].strip())
         self.num_helix = int(line[25:30].strip())

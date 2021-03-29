@@ -5,6 +5,7 @@
 .. codeauthor::  Nathan Baker
 """
 import logging
+import textwrap
 from collections import OrderedDict
 from datetime import datetime, date
 import pandas as pd
@@ -39,13 +40,14 @@ class Author(BaseRecord):
         super().__init__()
         self.author_list = []
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
-        self.author_list.append(line[10:79].strip())
+        super().parse_pdb(line)
+        for author in line[10:79].split(","):
+            self.author_list.append(author.strip())
 
     def parse_cif(self, container) -> bool:
         """Parse CIF container for information about this record.
@@ -57,13 +59,19 @@ class Author(BaseRecord):
         value_added = False
         df = cif_df(container.get_object("audit_author"))
         if len(df) > 0:
-            self.author_list = df["name"].values
+            for author in df["name"].values:
+                last, first = author.split(",")
+                author = f"{first.strip()}{last.strip()}".upper()
+                self.author_list.append(author)
             return True
         return False
 
     def __str__(self):
+        authors = " ".join(self.author_list)
+        lines = textwrap.wrap(authors, width=78, break_on_hyphens=False)
         strings = []
-        for iline, line in enumerate(self.author_list):
+        for iline, line in enumerate(lines):
+            line = line.replace(" ", ",")
             continuation = iline + 1
             if continuation > 1:
                 strings += [f"AUTHOR  {continuation:>2} {line:78}"]
@@ -119,12 +127,12 @@ class Caveat(BaseRecord):
         self.comment += [row[iattr] for row in row_list]
         return True
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.id_code = line[11:15].strip()
         self.comment.append(line[19:70].strip())
 
@@ -186,6 +194,8 @@ class Compound(BaseRecord):
         for _, row in df.iterrows():
             value_added = True
             row = row.dropna()
+            value = row["id"]
+            self.compound += [f"MOL_ID: {value};"]
             value = row["pdbx_description"]
             self.compound += [f"MOLECULE:  {value}"]
             if "pdbx_fragment" in row.index:
@@ -205,12 +215,12 @@ class Compound(BaseRecord):
                 self.compound += [f"OTHER_DETAILS:  {value}"]
         return value_added
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.compound.append(line[10:80].strip())
 
     def __str__(self):
@@ -272,12 +282,12 @@ class ExperimentalData(BaseRecord):
             return True
         return False
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.technique.append(line[10:79].strip())
 
     def __str__(self):
@@ -320,12 +330,12 @@ class Header(BaseRecord):
         self.dep_date = None
         self.id_code = None
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.classification = line[10:50].strip()
         self.dep_date = date_parse(line[50:59].strip())
         self.id_code = line[62:66].strip()
@@ -384,7 +394,7 @@ class Journal(BaseRecord):
 
         :param :class:`pdbx.containers.DataContainer` container:  container to
             parse
-        :returns:  list of :class:`Journal` objects
+        :returns:  list of objects of this class
         """
         journals = []
         citation_df = cif_df(container.get_object("citation"))
@@ -484,12 +494,12 @@ class Journal(BaseRecord):
             journals.append(journal)
         return journals
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.text.append(line[12:79].strip())
 
     def __str__(self):
@@ -538,12 +548,12 @@ class Keywords(BaseRecord):
             return True
         return False
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.keywords.append(line[10:80].strip())
 
     def __str__(self):
@@ -597,12 +607,12 @@ class ModelType(BaseRecord):
             return True
         return False
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.comment.append(line[10:80].strip())
 
     def __str__(self):
@@ -702,12 +712,12 @@ class Obsolete(BaseRecord):
         self.replace_id_codes = [row[iattr] for row in row_list]
         return True
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.replace_date = date_parse(line[11:20].strip())
         self.id_code = line[21:25].strip()
         self.replace_id_codes = [line[31:35].strip()]
@@ -761,7 +771,7 @@ class Remark(BaseRecord):
         self.remark_num = None
         self.remark_text = None
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Initialize by parsing line.
 
         +---------+------+-------------+--------------------------------------+
@@ -777,7 +787,7 @@ class Remark(BaseRecord):
 
         :param str line:  line with PDB class
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.remark_num = int(line[7:10].strip())
         self.remark_text = line[11:79]
 
@@ -830,12 +840,12 @@ class Revision(BaseRecord):
         self.modification_type = ""
         self.records = []
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line for specific revision.
 
         :param str line:  line to parse.
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.modification_num = int(line[7:10].strip())
         try:
             self.modification_date = date_parse(line[13:22].strip())
@@ -944,37 +954,31 @@ class RevisionData(BaseRecord):
         :returns:  True if useful information was extracted from container
         """
         value_added = False
-        cif_obj = container.get_object("database_PDB_rev")
-        if cif_obj is None:
-            return False
-        df = cif_df(cif_obj)
-        print(df)
-        raise NotImplementedError()
-        for key, values in cif_dict:
+        df = cif_df(container.get_object("pdbx_audit_revision_history"))
+        for _, row in df.iterrows():
             revision = Revision()
-            revision.modification_num = key
-            mod_date = values["date"]
-            mod_date = datetime.strptime(mod_date, r"%Y-%m-%d")
-            mod_date = date(
-                year=mod_date.year, month=mod_date.month, day=mod_date.day
+            rev_num = row["ordinal"]
+            revision.modification_num = rev_num
+            rev_date = row["revision_date"]
+            rev_date = datetime.strptime(rev_date, r"%Y-%m-%d")
+            revision.modification_date = date(
+                year=rev_date.year, month=rev_date.month, day=rev_date.day
             )
-            revision.modification_date = mod_date
-            revision.modification_id = values["replaces"]
-            revision.modification_type = values["mod_type"]
-            revision.records = values["type"]
-            self.revisions.append(revision)
+            revision.modification_id = rev_num
+            revision.modification_type = 1
+            self._revisions[rev_num] = revision
             value_added = True
         return value_added
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         mod_num = int(line[7:10].strip())
         revision = self._revisions.get(mod_num, Revision())
-        revision.parse_line(line)
+        revision.parse_pdb(line)
         self._revisions[mod_num] = revision
 
     def __str__(self):
@@ -990,6 +994,114 @@ class RevisionData(BaseRecord):
                 continuation = 1
                 curr_mod = mod_num
             strings.append(string)
+        return "\n".join(strings)
+
+
+class SpecificSite(BaseException):
+    """Specific named SITE record.
+
+    The SITE records supply the identification of groups comprising
+    important sites in the macromolecule.
+
+    +---------+--------------+-----------+------------------------------------+
+    | COLUMNS | DATA TYPE    | FIELD     | DEFINITION                         |
+    +=========+==============+===========+====================================+
+    | 1-6     | Record name  | "SITE  "  |                                    |
+    +---------+--------------+-----------+------------------------------------+
+    | 8-10    | Integer      | seq_num   | Sequence number.                   |
+    +---------+--------------+-----------+------------------------------------+
+    | 12-14   | LString(3)   | site_id   | Site name.                         |
+    +---------+--------------+-----------+------------------------------------+
+    | 16-17   | Integer      | num_res   | Number of residues that compose    |
+    |         |              |           | the site.                          |
+    +---------+--------------+-----------+------------------------------------+
+    | 19-21   | Residue name | res_name1 | Residue name for first residue     |
+    |         |              |           | that creates the site.             |
+    +---------+--------------+-----------+------------------------------------+
+    | 23      | Character    | chain_id1 | Chain identifier for first residue |
+    |         |              |           | of site.                           |
+    +---------+--------------+-----------+------------------------------------+
+    | 24-27   | Integer      | seq1      | Residue sequence number for first  |
+    |         |              |           | residue of the site.               |
+    +---------+--------------+-----------+------------------------------------+
+    | 28      | AChar        | ins_code1 | Insertion code for first residue   |
+    |         |              |           | of the site.                       |
+    +---------+--------------+-----------+------------------------------------+
+    | 30-32   | Residue name | res_name2 | Residue name for second residue    |
+    |         |              |           | that creates the site.             |
+    +---------+--------------+-----------+------------------------------------+
+    | 34      | Character    | chain_id2 | Chain identifier for second        |
+    |         |              |           | residue of the site.               |
+    +---------+--------------+-----------+------------------------------------+
+    | 35-38   | Integer      | seq2      | Residue sequence number for second |
+    |         |              |           | residue of the site.               |
+    +---------+--------------+-----------+------------------------------------+
+    | 39      | AChar        | ins_code2 | Insertion code for second residue  |
+    |         |              |           | of the site.                       |
+    +---------+--------------+-----------+------------------------------------+
+    | 41-43   | Residue name | res_name3 | Residue name for third residue     |
+    |         |              |           | that creates the site.             |
+    +---------+--------------+-----------+------------------------------------+
+    | 45      | Character    | chain_id3 | Chain identifier for third residue |
+    |         |              |           | of the site.                       |
+    +---------+--------------+-----------+------------------------------------+
+    | 46-49   | Integer      | seq3      | Residue sequence number for third  |
+    |         |              |           | residue of the site.               |
+    +---------+--------------+-----------+------------------------------------+
+    | 50      | AChar        | ins_code3 | Insertion code for third residue   |
+    |         |              |           | of the site.                       |
+    +---------+--------------+-----------+------------------------------------+
+    | 52-54   | Residue name | res_name4 | Residue name for fourth residue    |
+    |         |              |           | that creates the site.             |
+    +---------+--------------+-----------+------------------------------------+
+    | 56      | Character    | chain_id4 | Chain identifier for fourth        |
+    |         |              |           | residue of the site.               |
+    +---------+--------------+-----------+------------------------------------+
+    | 57-60   | Integer      | seq4      | Residue sequence number for fourth |
+    |         |              |           | residue of the site.               |
+    +---------+--------------+-----------+------------------------------------+
+    | 61      | AChar        | ins_code4 | Insertion code for fourth residue  |
+    |         |              |           | of the site.                       |
+    +---------+--------------+-----------+------------------------------------+
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.seq_num = None
+        self.site_id = None
+        self.num_res = None
+        self.res_name = []
+        self.chain_id = []
+        self.seq = []
+        self.ins_code = []
+
+    def parse_cif_row(self, row):
+        """Parse a row from a CIF file.
+
+        :param :class:`pandas.Series` row:  CIF row to parse
+        """
+        self.site_id = row["site_id"]
+        id_ = row["id"]
+        self.seq_num = id_
+        self.num_res = row["pdbx_num_res"]
+        self.res_name.append(row["auth_comp_id"])
+        self.chain_id.append(row["auth_asym_id"])
+        self.seq.append(row["auth_seq_id"])
+        self.ins_code.append(row["pdbx_auth_ins_code"])
+
+    def __str__(self):
+        strings = []
+        seq_num = 1
+        for istep in range(0, len(self.res_name), 4):
+            str_ = f"SITE   {seq_num:<3} {self.site_id:3} {self.num_res:2} "
+            for isite in range(istep, min(len(self.res_name), istep+4)):
+                res_name = self.res_name[isite]
+                chain_id = self.chain_id[isite]
+                seq = self.seq[isite]
+                ins_code = self.ins_code[isite]
+                str_ += f"{res_name:>3} {chain_id:1}{seq:>4}{ins_code:1} "
+            strings.append(str_)
+            seq_num += 1
         return "\n".join(strings)
 
 
@@ -1063,73 +1175,32 @@ class Site(BaseRecord):
 
     def __init__(self):
         super().__init__()
-        self.seq_num = None
-        self.site_id = None
-        self.num_res = None
-        self.res_name1 = None
-        self.chain_id1 = None
-        self.seq1 = None
-        self.ins_code1 = ""
-        self.res_name2 = ""
-        self.chain_id2 = ""
-        self.seq2 = ""
-        self.ins_code2 = ""
-        self.res_name3 = ""
-        self.chain_id3 = ""
-        self.seq3 = ""
-        self.ins_code3 = ""
-        self.res_name4 = ""
-        self.chain_id4 = ""
-        self.seq4 = ""
-        self.ins_code4 = ""
+        self.sites = OrderedDict()
 
-    @staticmethod
-    def parse_cif(container) -> list:
+    def parse_cif(self, container) -> list:
         """Parse CIF container for information about this record.
 
         :param :class:`pdbx.containers.DataContainer` container:  container to
             parse
-        :returns:  list of :class:`SequenceDifferences` objects
+        :returns:  list of objects of this class
         """
-        sites = {}
-        df = cif_df(container.get_object("struct_site_gen"))
+        value_add = False
+        df = cif_df(container.get_object("struct_site_gen")).fillna("")
         for _, row in df.iterrows():
-            id_ = row["id"]
-            site = sites.get(id_, Site())
-            site.seq_num = id_
-            site.site_id = row["site_id"]
-            site.num_res = row["pdbx_num_res"]
-            if not site.res_name1:
-                site.res_name1 = row["auth_comp_id"]
-                site.chain_id1 = row["auth_asym_id"]
-                site.seq1 = row["auth_seq_id"]
-                site.ins_code1 = row["pdbx_auth_ins_code"]
-            elif not site.res_name2:
-                site.res_name2 = row["auth_comp_id"]
-                site.chain_id2 = row["auth_asym_id"]
-                site.seq2 = row["auth_seq_id"]
-                site.ins_code2 = row["pdbx_auth_ins_code"]
-            elif not site.res_name3:
-                site.res_name3 = row["auth_comp_id"]
-                site.chain_id3 = row["auth_asym_id"]
-                site.seq3 = row["auth_seq_id"]
-                site.ins_code3 = row["pdbx_auth_ins_code"]
-            elif not site.res_name4:
-                site.res_name4 = row["auth_comp_id"]
-                site.chain_id4 = row["auth_asym_id"]
-                site.seq4 = row["auth_seq_id"]
-                site.ins_code4 = row["pdbx_auth_ins_code"]
-            else:
-                raise NotImplementedError(f"Too many records for site {id_}.")
-            sites[id_] = site
-        return list(sites.values())
+            site_id = row["site_id"]
+            site = self.sites.get(site_id, SpecificSite())
+            site.parse_cif_row(row)
+            self.sites[site_id] = site
+            value_add = True
+        return value_add
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
+        NotImplementedError()
         self.seq_num = int(line[7:10].strip())
         self.site_id = line[11:14].strip()
         self.num_res = int(line[15:17].strip())
@@ -1160,15 +1231,10 @@ class Site(BaseRecord):
             pass
 
     def __str__(self):
-        return (
-            f"SITE   {self.seq_num:3} {self.site_id:3} {self.num_res:2}"
-            f" {self.res_name1:>3} {self.chain_id1:1}{self.seq1:4}"
-            f"{self.ins_code1:1} {self.res_name2:>3} {self.chain_id2:1}"
-            f"{self.seq2:4}{self.ins_code2:1} {self.res_name3:>3}"
-            f" {self.chain_id3:1}{self.seq3:4}{self.ins_code3:1}"
-            f" {self.res_name4:>3} {self.chain_id4:1}{self.seq4:4}"
-            f"{self.ins_code4:1}"
-        )
+        strings = []
+        for site in self.sites.values():
+            strings.append(str(site))
+        return "\n".join(strings)
 
 
 class NumModels(BaseRecord):
@@ -1189,12 +1255,12 @@ class NumModels(BaseRecord):
         super().__init__()
         self.model_number = None
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.model_number = int(line[10:14])
 
     def __str__(self):
@@ -1317,12 +1383,12 @@ class Source(BaseRecord):
                         value_added = True
         return value_added
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse a PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.continuation = line[7:10].strip()
         self.source.append(line[10:79].strip())
 
@@ -1400,7 +1466,7 @@ class Split(BaseRecord):
         self.id_codes += [row[iattr] for row in cif_obj.row_list]
         return True
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse input line.
 
         :param str line:  PDB-format line to parse
@@ -1511,12 +1577,12 @@ class Supersedes(BaseRecord):
                 value_added = True
         return value_added
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.super_date = date_parse(line[11:20].strip())
         self.id_code = line[21:25].strip()
         self.super_id_codes = [line[31:35].strip()]
@@ -1566,19 +1632,20 @@ class Title(BaseRecord):
 
     def __init__(self):
         super().__init__()
-        self.title = []
+        self.title = ""
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
-        self.title.append(line[10:80].strip())
+        super().parse_pdb(line)
+        self.title = " ".join([self.title, line[10:80].strip()])
 
     def __str__(self):
+        lines = textwrap.wrap(self.title, width=69, break_on_hyphens=False)
         strings = []
-        for iline, line in enumerate(self.title):
+        for iline, line in enumerate(lines):
             continuation = iline + 1
             if continuation > 1:
                 strings += [f"TITLE   {continuation:>2} {line:69}"]

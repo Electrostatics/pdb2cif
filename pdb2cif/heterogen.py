@@ -64,7 +64,7 @@ class Heterogen(BaseRecord):
 
         :param :class:`pdbx.containers.DataContainer` container:  container to
             parse
-        :returns:  list of :class:`SequenceDifferences` objects
+        :returns:  list of objects of this class
         """
         df = cif_df(container.get_object("pdbx_nonpoly_scheme"))
         het_list = []
@@ -77,12 +77,12 @@ class Heterogen(BaseRecord):
             het_list.append(het)
         return het_list
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.hetatm_id = line[7:10].strip()
         self.chain_id = line[12].strip()
         self.seq_num = int(line[13:17].strip())
@@ -92,7 +92,7 @@ class Heterogen(BaseRecord):
 
     def __str__(self):
         return (
-            f"HET    {self.hetatm_id:>3}  {self.chain_id:1}{self.seq_num:4}"
+            f"HET    {self.hetatm_id:>3}  {self.chain_id:1}{self.seq_num:>4}"
             f"{self.ins_code:1}  {self.num_het_atoms:5}     {self.text:40}"
         )
 
@@ -130,17 +130,19 @@ class HeterogenName(BaseRecord):
         :returns:  True if useful information was extracted from container
         """
         value_added = False
-        df = cif_df(container.get_object("comp_name"))
-        if len(df) > 0:
-            raise NotImplementedError()
+        df = cif_df(container.get_object("pdbx_entity_nonpoly"))
+        for _, row in df.iterrows():
+            het_id = row["comp_id"]
+            self.heterogens[het_id] = [row["name"]]
+            value_added = True
         return value_added
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         hetatm_id = line[11:14].strip()
         string = line[15:70].strip()
         strings = self.heterogens.get(hetatm_id, [])
@@ -196,13 +198,46 @@ class HeterogenSynonym(BaseRecord):
         :returns:  True if useful information was extracted from container
         """
         value_added = False
-        df = cif_df(container.get_object("comp_name"))
-        if len(df) > 0:
-            raise NotImplementedError(str(df))
+        df = cif_df(container.get_object("chem_comp"))
+        df = df[
+            ~df["id"].isin(
+                [
+                    "ALA",
+                    "ARG",
+                    "ASN",
+                    "ASP",
+                    "CYS",
+                    "GLN",
+                    "GLU",
+                    "GLY",
+                    "HIS",
+                    "HOH",
+                    "ILE",
+                    "LEU",
+                    "LYS",
+                    "MET",
+                    "PHE",
+                    "PRO",
+                    "SER",
+                    "THR",
+                    "TRP",
+                    "TYR",
+                    "VAL",
+                ]
+            )
+        ]
+        for _, row in df.iterrows():
+            het_id = row["id"]
+            name = row["pdbx_synonyms"]
+            if name is not None:
+                syns = self.synonyms.get(het_id, [])
+                syns.append(name)
+                self.synonyms[het_id] = syns
+                value_added = True
         return value_added
 
-    def parse_line(self, line):
-        super().parse_line(line)
+    def parse_pdb(self, line):
+        super().parse_pdb(line)
         het_id = line[11:14].strip()
         synonyms = self.synonyms.get(het_id, [])
         synonyms.append(line[15:70].strip())
@@ -256,9 +291,38 @@ class Formula(BaseRecord):
         :returns:  True if useful information was extracted from container
         """
         value_added = False
-        df = cif_df(container.get_object("comp_name"))
-        if len(df) > 0:
-            raise NotImplementedError(str(df))
+        df = cif_df(container.get_object("chem_comp"))
+        df = df[
+            ~df["id"].isin(
+                [
+                    "ALA",
+                    "ARG",
+                    "ASN",
+                    "ASP",
+                    "CYS",
+                    "GLN",
+                    "GLU",
+                    "GLY",
+                    "HIS",
+                    "ILE",
+                    "LEU",
+                    "LYS",
+                    "MET",
+                    "PHE",
+                    "PRO",
+                    "SER",
+                    "THR",
+                    "TRP",
+                    "TYR",
+                    "VAL",
+                ]
+            )
+        ]
+        for _, row in df.iterrows():
+            het_id = row["id"]
+            formula = row["formula"]
+            self.components[het_id] = formula
+            value_added = True
         return value_added
 
     @property
@@ -274,12 +338,12 @@ class Formula(BaseRecord):
     def components(self, value):
         self._components = value
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         component_num = int(line[8:10].strip())
         if component_num not in self._components:
             self._components[component_num] = []

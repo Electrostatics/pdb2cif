@@ -7,6 +7,7 @@ Contents Guide: Atomic Coordinate Entry Format Description, Version 3.3
 .. codeauthor::  Nathan Baker
 """
 import logging
+from pdb2cif.general import cif_df
 import pdbx
 from . import annotation, primary, heterogen, secondary, coordinates
 from . import crystallography, bookkeeping
@@ -58,7 +59,7 @@ class Entry:
         self._link = []
         self._cis_peptide = []
         # Miscellaneous section
-        self._site = []
+        self._site = None
         # Crystallographic and coordinate transformation section
         self._unit_cell = None
         self._orig_transform = []
@@ -77,11 +78,10 @@ class Entry:
         :param :class:`pdbx.containers.DataContainer` container:  container to
             parse
         """
-        cif_obj = container.get_object("struct")
-        attr_list = cif_obj.attribute_list
-        row_list = cif_obj.row_list
-        iattr = attr_list.index("title")
-        self._title = row_list[0][iattr]
+        df = cif_df(container.get_object("struct"))
+        title = annotation.Title()
+        title.title = df["title"].values[0]
+        self._title = title
 
     def parse_cif_file(self, cif_file):
         """Parse CIF file into PDB entry.
@@ -153,10 +153,8 @@ class Entry:
             self._heterogen_name = het_name
         het_syn = heterogen.HeterogenSynonym()
         if het_syn.parse_cif(container):
-            self._heterogen_synonym
-        formula = heterogen.Formula()
-        if formula.parse_cif(container):
-            self._heterogen_formula = formula
+            self._heterogen_synonym = het_syn
+        _LOGGER.warning("Not parsing FORMULA records from CIF.")
         helices = secondary.Helix.parse_cif(container)
         if helices:
             self._helix = helices
@@ -172,9 +170,9 @@ class Entry:
         cis_peps = secondary.CisPeptide.parse_cif(container)
         if cis_peps:
             self._cis_peptide = cis_peps
-        sites = annotation.Site.parse_cif(container)
-        if sites:
-            self._site = sites
+        site = annotation.Site()
+        if site.parse_cif(container):
+            self._site = site
         unit_cell = crystallography.UnitCell()
         if unit_cell.parse_cif(container):
             self._unit_cell = unit_cell
@@ -187,7 +185,27 @@ class Entry:
         transforms = crystallography.NoncrystalTransform.parse_cif(container)
         if transforms:
             self._noncrystal_transform = transforms
-        raise NotImplementedError()
+        models = coordinates.Model.parse_cif(container)
+        if models:
+            self._models = models
+        atoms = coordinates.Atom.parse_cif(container)
+        het_atoms = coordinates.HeterogenAtom.parse_cif(container)
+        temp_factors = coordinates.TemperatureFactor.parse_cif(container)
+        for model in models:
+            model_num = model.serial
+            try:
+                model.records += atoms[model_num]
+            except KeyError:
+                _LOGGER.debug(f"No ATOM records for model {model_num}.")
+            try:
+                model.records += het_atoms[model_num]
+            except KeyError:
+                _LOGGER.debug(f"No HETATM records for model {model_num}.")
+            try:
+                model.records += temp_factors[model_num]
+            except KeyError:
+                _LOGGER.debug(f"No ANISOU records for model {model_num}.")
+        self._model = models
 
     @property
     def header(self) -> annotation.Header:
@@ -649,7 +667,11 @@ class Entry:
             if record is not None:
                 strings.append(str(record))
         # Heterogen section
-        for record in self._heterogen + [
+        for record in self._heterogen:
+            if record is not None:
+                if record.hetatm_id != "HOH":
+                    strings.append(str(record))
+        for record in [
             self._heterogen_name,
             self._heterogen_synonym,
             self._heterogen_formula,
@@ -672,9 +694,8 @@ class Entry:
             if record is not None:
                 strings.append(str(record))
         # Miscellaneous section
-        for record in self._site:
-            if record is not None:
-                strings.append(str(record))
+        if self._site is not None:
+            strings.append(str(self._site))
         # Crystallographic and coordinate transformation section
         for record in (
             [self._unit_cell]
@@ -723,139 +744,140 @@ class Entry:
                 err = f"HEADER already exists:\n{self._header}"
                 raise ValueError(err)
             self._header = annotation.Header()
-            self._header.parse_line(line)
+            self._header.parse_pdb(line)
         elif name == "OBSLTE":
             if not self._obsolete:
                 self._obsolete = annotation.Obsolete()
-            self._obsolete.parse_line(line)
+            self._obsolete.parse_pdb(line)
         elif name == "TITLE":
             if not self._title:
                 self._title = annotation.Title()
-            self._title.parse_line(line)
+            self._title.parse_pdb(line)
         elif name == "SPLIT":
             if not self._split:
                 self._split = annotation.Split()
-            self._split.parse_line(line)
+            self._split.parse_pdb(line)
         elif name == "CAVEAT":
             if not self._caveat:
                 self._caveat = annotation.Caveat()
-            self._caveat.parse_line(line)
+            self._caveat.parse_pdb(line)
         elif name == "COMPND":
             if not self._compound:
                 self._compound = annotation.Compound()
-            self._compound.parse_line(line)
+            self._compound.parse_pdb(line)
         elif name == "SOURCE":
             if not self._source:
                 self._source = annotation.Source()
-            self._source.parse_line(line)
+            self._source.parse_pdb(line)
         elif name == "KEYWDS":
             if not self._keyword:
                 self._keyword = annotation.Keywords()
-            self._keyword.parse_line(line)
+            self._keyword.parse_pdb(line)
         elif name == "EXPDTA":
             if not self._experimental_data:
                 self._experimental_data = annotation.ExperimentalData()
-            self._experimental_data.parse_line(line)
+            self._experimental_data.parse_pdb(line)
         elif name == "NUMMDL":
             if self._num_model is not None:
                 err = f"NUMMDL already exists:\n{self._num_model}"
                 raise ValueError(err)
             self._num_model = annotation.NumModels()
-            self._num_model.parse_line(line)
+            self._num_model.parse_pdb(line)
         elif name == "MDLTYP":
             if not self._model_type:
                 self._model_type = annotation.ModelType()
-            self._model_type.parse_line(line)
+            self._model_type.parse_pdb(line)
         elif name == "AUTHOR":
             if not self.author:
                 self.author = annotation.Author()
-            self.author.parse_line(line)
+            self.author.parse_pdb(line)
         elif name == "REVDAT":
             if not self._revision_data:
                 self._revision_data = annotation.RevisionData()
-            self._revision_data.parse_line(line)
+            self._revision_data.parse_pdb(line)
         elif name == "SPRSDE":
             if not self._supersedes:
                 self._supersedes = annotation.Supersedes()
-            self._supersedes.parse_line(line)
+            self._supersedes.parse_pdb(line)
         elif name == "JRNL":
             journal = annotation.Journal()
-            journal.parse_line(line)
+            journal.parse_pdb(line)
             self._journal.append(journal)
         elif name == "REMARK":
             remark = annotation.Remark()
-            remark.parse_line(line)
+            remark.parse_pdb(line)
             self._remark.append(remark)
         elif name == "DBREF":
             database = primary.DatabaseReference()
-            database.parse_line(line)
+            database.parse_pdb(line)
             self._database_reference.append(database)
         elif name == "DBREF1":
             database = primary.DatabaseReference1()
-            database.parse_line(line)
+            database.parse_pdb(line)
             self._database_reference.append(database)
         elif name == "DBREF2":
             database = primary.DatabaseReference2()
-            database.parse_line(line)
+            database.parse_pdb(line)
             self._database_reference.append(database)
         elif name == "SEQADV":
             seqadv = primary.SequenceDifferences()
-            seqadv.parse_line(line)
+            seqadv.parse_pdb(line)
             self._sequence_difference.append(seqadv)
         elif name == "SEQRES":
             if not self._sequence_residue:
                 self._sequence_residue = primary.SequenceResidues()
-            self._sequence_residue.parse_line(line)
+            self._sequence_residue.parse_pdb(line)
         elif name == "HET":
             het = heterogen.Heterogen()
-            het.parse_line(line)
+            het.parse_pdb(line)
             self._heterogen.append(het)
         elif name == "HETNAM":
             if not self._heterogen_name:
                 self._heterogen_name = heterogen.HeterogenName()
-            self._heterogen_name.parse_line(line)
+            self._heterogen_name.parse_pdb(line)
         elif name == "HETSYN":
             if not self._heterogen_synonym:
                 self._heterogen_synonym = heterogen.HeterogenSynonym()
-            self._heterogen_synonym.parse_line(line)
+            self._heterogen_synonym.parse_pdb(line)
         elif name == "FORMUL":
             if not self._heterogen_formula:
                 self._heterogen_formula = heterogen.Formula()
-            self._heterogen_formula.parse_line(line)
+            self._heterogen_formula.parse_pdb(line)
         elif name == "HELIX":
             helix = secondary.Helix()
-            helix.parse_line(line)
+            helix.parse_pdb(line)
             self._helix.append(helix)
         elif name == "SHEET":
             sheet = secondary.Sheet()
-            sheet.parse_line(line)
+            sheet.parse_pdb(line)
             self._sheet.append(sheet)
         elif name == "SSBOND":
             bond = secondary.DisulfideBond()
-            bond.parse_line(line)
+            bond.parse_pdb(line)
             self._disulfide_bond.append(bond)
         elif name == "LINK":
             link = secondary.Link()
-            link.parse_line(line)
+            link.parse_pdb(line)
             self._link.append(link)
         elif name == "CISPEP":
             pep = secondary.CisPeptide()
-            pep.parse_line(line)
+            pep.parse_pdb(line)
             self._cis_peptide.append(pep)
         elif name == "SITE":
             site = annotation.Site()
-            site.parse_line(line)
+            site.parse_pdb(line)
+            raise NotImplementedError("FIX THIS")
             self._site.append(site)
         elif name == "CRYST1":
             if self._unit_cell is not None:
                 err = f"CRYST1 already exists:\n{self._unit_cell}"
                 raise ValueError(err)
             self._unit_cell = crystallography.UnitCell()
-            self._unit_cell.parse_line(line)
+            self._unit_cell.parse_pdb(line)
         elif name in ["ORIGX1", "ORIGX2", "ORIGX3"]:
             n = int(name[5])
             orig = crystallography.OriginalTransform(n)
-            orig.parse_line(line)
+            orig.parse_pdb(line)
             self._orig_transform.append(orig)
             if len(self._orig_transform) > 3:
                 err = f"Too many ({len(self._orig_transform)}) transforms."
@@ -863,7 +885,7 @@ class Entry:
         elif name in ["SCALE1", "SCALE2", "SCALE3"]:
             n = int(name[5])
             scale = crystallography.FractionalTransform(n)
-            scale.parse_line(line)
+            scale.parse_pdb(line)
             self._frac_transform.append(scale)
             if len(self._frac_transform) > 3:
                 err = f"Too many ({len(self._frac_transform)}) transforms."
@@ -871,29 +893,29 @@ class Entry:
         elif name in ["MTRIX1", "MTRIX2", "MTRIX3"]:
             n = int(name[5])
             matrix = crystallography.NoncrystalTransform(n)
-            matrix.parse_line(line)
+            matrix.parse_pdb(line)
             self._noncrystal_transform.append(matrix)
             if len(self._noncrystal_transform) > 3:
                 err = f"Too many ({len(self._noncrystal_transform)}) transforms."
                 raise ValueError(err)
         elif name == "MODEL":
             model = coordinates.Model()
-            model.parse_line(line)
+            model.parse_pdb(line)
             self._model.append(model)
         elif name in ["ATOM", "ANISOU", "TER", "HETATM"]:
             if len(self._model) == 0:
                 self._model = [coordinates.Model()]
-            self._model[-1].parse_line(line)
+            self._model[-1].parse_pdb(line)
         elif name == "CONECT":
             connect = bookkeeping.Connection()
-            connect.parse_line(line)
+            connect.parse_pdb(line)
             self._connect.append(connect)
         elif name == "MASTER":
             if self._master:
                 err = f"MASTER record already exists. Got: {line}."
                 raise ValueError(err)
             self._master = bookkeeping.Master()
-            self._master.parse_line(line)
+            self._master.parse_pdb(line)
         elif name in ["ENDMDL", "END"]:
             pass
         else:

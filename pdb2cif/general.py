@@ -85,7 +85,7 @@ class BaseRecord:
     def __init__(self):
         self.original_text = []
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse line of PDB file.
 
         :param str line:  PDB file line to parse

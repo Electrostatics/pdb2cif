@@ -52,25 +52,25 @@ class FractionalTransform(BaseRecord):
 
         :param :class:`pdbx.containers.DataContainer` container:  container to
             parse
-        :returns:  list of :class:`SequenceDifferences` objects
+        :returns:  list of objects of this class
         """
         transforms = []
         df = cif_df(container.get_object("atom_sites"))
         for n in [1, 2, 3]:
             transform = FractionalTransform(n)
-            transform.sn1 = df[f"fract_transf_matrix[{n}][1]"]
-            transform.sn2 = df[f"fract_transf_matrix[{n}][2]"]
-            transform.sn3 = df[f"fract_transf_matrix[{n}][3]"]
-            transform.unif = df[f"fract_transf_vector[{n}]"]
+            transform.sn1 = float(df[f"fract_transf_matrix[{n}][1]"])
+            transform.sn2 = float(df[f"fract_transf_matrix[{n}][2]"])
+            transform.sn3 = float(df[f"fract_transf_matrix[{n}][3]"])
+            transform.unif = float(df[f"fract_transf_vector[{n}]"])
             transforms.append(transform)
         return transforms
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.sn1 = float(line[10:20].strip())
         self.sn2 = float(line[20:30].strip())
         self.sn3 = float(line[30:40].strip())
@@ -123,25 +123,25 @@ class OriginalTransform(BaseRecord):
 
         :param :class:`pdbx.containers.DataContainer` container:  container to
             parse
-        :returns:  list of :class:`SequenceDifferences` objects
+        :returns:  list of objects of this class
         """
         transforms = []
         df = cif_df(container.get_object("database_PDB_matrix"))
         for n in [1, 2, 3]:
             transform = OriginalTransform(n)
-            transform.on1 = df[f"origx[{n}][1]"]
-            transform.on2 = df[f"origx[{n}][2]"]
-            transform.on3 = df[f"origx[{n}][3]"]
-            transform.tn = df[f"origx_vector[{n}]"]
+            transform.on1 = float(df[f"origx[{n}][1]"])
+            transform.on2 = float(df[f"origx[{n}][2]"])
+            transform.on3 = float(df[f"origx[{n}][3]"])
+            transform.tn = float(df[f"origx_vector[{n}]"])
             transforms.append(transform)
         return transforms
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.on1 = float(line[10:20].strip())
         self.on2 = float(line[20:30].strip())
         self.on3 = float(line[30:40].strip())
@@ -204,27 +204,30 @@ class NoncrystalTransform(BaseRecord):
 
         :param :class:`pdbx.containers.DataContainer` container:  container to
             parse
-        :returns:  list of :class:`SequenceDifferences` objects
+        :returns:  list of objects of this class
         """
         transforms = []
         df = cif_df(container.get_object("struct_ncs_oper"))
         for n in [1, 2, 3]:
             transform = NoncrystalTransform(n)
-            transform.serial = df["id"]
-            transform.mn1 = df[f"matrix[{n}][1]"]
-            transform.mn2 = df[f"matrix[{n}][2]"]
-            transform.mn3 = df[f"matrix[{n}][3]"]
-            transform.vecn = df[f"vector[{n}]"]
-            transform.i_given = df["code"]
+            transform.serial = int(df["id"])
+            transform.mn1 = float(df[f"matrix[{n}][1]"])
+            transform.mn2 = float(df[f"matrix[{n}][2]"])
+            transform.mn3 = float(df[f"matrix[{n}][3]"])
+            transform.vecn = float(df[f"vector[{n}]"])
+            if df["code"].values[0] == "given":
+                transform.i_given = 1
+            else:
+                raise NotImplementedError(df["code"])
             transforms.append(transform)
         return transforms
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.serial = int(line[7:10].strip())
         self.mn1 = float(line[10:20].strip())
         self.mn2 = float(line[20:30].strip())
@@ -292,22 +295,22 @@ class UnitCell(BaseRecord):
         """
         cell_df = cif_df(container.get_object("cell"))
         sym_df = cif_df(container.get_object("symmetry"))
-        self.a = cell_df["length_a"].values[0]
-        self.b = cell_df["length_b"].values[0]
-        self.c = cell_df["length_c"].values[0]
-        self.alpha = cell_df["angle_alpha"].values[0]
-        self.beta = cell_df["angle_beta"].values[0]
-        self.gamma = cell_df["angle_gamma"].values[0]
+        self.a = float(cell_df["length_a"].values[0])
+        self.b = float(cell_df["length_b"].values[0])
+        self.c = float(cell_df["length_c"].values[0])
+        self.alpha = float(cell_df["angle_alpha"].values[0])
+        self.beta = float(cell_df["angle_beta"].values[0])
+        self.gamma = float(cell_df["angle_gamma"].values[0])
         self.space_group = sym_df["space_group_name_H-M"].values[0]
         self.z = cell_df["Z_PDB"].values[0]
         return True
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.a = float(line[6:15].strip())
         self.b = float(line[15:24].strip())
         self.c = float(line[24:33].strip())

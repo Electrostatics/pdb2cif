@@ -7,9 +7,36 @@
 from itertools import count
 import logging
 from typing import OrderedDict
-from .general import BaseRecord, atom_format
+from .general import BaseRecord, atom_format, cif_df
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def atom_extract_cif(atom, row):
+    """Extract atom information from CIF record.
+
+    :param atom-like atom:  :class:`Atom` or :class`HeterogenAtom` object
+    :param pandas.Series row:  CIF row
+    :returns:  :class:`Atom` or :class`HeterogenAtom` object with CIF information
+    :rtype:  atom-like
+    """
+    atom.serial = row["id"]
+    atom.name = row["auth_atom_id"]
+    atom.alt_loc = row["label_alt_id"]
+    atom.res_name = row["auth_comp_id"]
+    atom.chain_id = row["auth_asym_id"]
+    atom.res_seq = row["auth_seq_id"]
+    atom.ins_code = row["pdbx_PDB_ins_code"]
+    atom.x = float(row["Cartn_x"])
+    atom.y = float(row["Cartn_y"])
+    atom.z = float(row["Cartn_z"])
+    atom.occupancy = float(row["occupancy"])
+    atom.temp_factor = float(row["B_iso_or_equiv"])
+    atom.element = row["type_symbol"]
+    charge = row["pdbx_formal_charge"]
+    if charge:
+        atom.charge = float(charge)
+    return atom
 
 
 class Model(BaseRecord):
@@ -33,12 +60,28 @@ class Model(BaseRecord):
         self.serial = None
         self.records = []
 
-    def parse_line(self, line):
+    @staticmethod
+    def parse_cif(container) -> list:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  list of objects of this class
+        """
+        models = []
+        df = cif_df(container.get_object("atom_site")).fillna("")
+        for model_num in sorted(list(set(df["pdbx_PDB_model_num"]))):
+            model = Model()
+            model.serial = model_num
+            models.append(model)
+        return models
+
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         name = line[0:6].strip()
         if name == "MODEL":
             self.serial = int(line[10:14].strip())
@@ -56,7 +99,7 @@ class Model(BaseRecord):
         else:
             err = f"Unexpected line: {line}"
             raise ValueError(err)
-        record.parse_line(line)
+        record.parse_pdb(line)
         self.records.append(record)
 
     @property
@@ -200,12 +243,32 @@ class Atom(BaseRecord):
         self.element = ""
         self.charge = ""
 
-    def parse_line(self, line):
+    @staticmethod
+    def parse_cif(container) -> dict:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  dictionary of objects of this class indexed by model number
+        """
+        atoms = {}
+        df = cif_df(container.get_object("atom_site")).fillna("")
+        df = df[df["group_PDB"] == "ATOM"]
+        for _, row in df.iterrows():
+            atom = Atom()
+            atom = atom_extract_cif(atom, row)
+            model_num = row["pdbx_PDB_model_num"]
+            model = atoms.get(model_num, [])
+            model.append(atom)
+            atoms[model_num] = model
+        return atoms
+
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.serial = int(line[6:11].strip())
         self.name = line[12:16].strip()
         self.alt_loc = line[16].strip()
@@ -296,12 +359,44 @@ class TemperatureFactor(BaseRecord):
         self.element = None
         self.charge = None
 
-    def parse_line(self, line):
+    @staticmethod
+    def parse_cif(container) -> dict:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  list of objects of this class
+        """
+        factors = {}
+        df = cif_df(container.get_object("atom_site_anisotrop"))
+        for _, row in df.iterrows():
+            factor = TemperatureFactor()
+            factor.serial = row["id"]
+            factor.name = row["pdbx_auth_atom_id"]
+            factor.alt_loc = row["pdbx_label_alt_id"]
+            factor.res_name = row["pdbx_auth_comp_id"]
+            factor.chain_id = row["pdbx_auth_asym_id"]
+            factor.res_seq = row["pdbx_auth_seq_id"]
+            factor.ins_code = row["pdbx_PDB_ins_code"]
+            factor.u00 = float(row["U[1][1]"])
+            factor.u11 = float(row["U[2][2]"])
+            factor.u22 = float(row["U[3][3]"])
+            factor.u01 = float(row["U[1][2]"])
+            factor.u02 = float(row["U[1][3]"])
+            factor.u12 = float(row["U[2][3]"])
+            factor.element = row["type_symbol"]
+            model_num = row["pdbx_PDB_model_num"]
+            model = factors.get(model_num, [])
+            model.append(factor)
+            factors[model_num] = model
+        return factors
+
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.serial = int(line[6:11].strip())
         self.name = line[12:16].strip()
         self.alt_loc = line[16].strip()
@@ -309,12 +404,12 @@ class TemperatureFactor(BaseRecord):
         self.chain_id = line[21].strip()
         self.res_seq = int(line[22:26].strip())
         self.ins_code = line[26].strip()
-        self.u00 = int(line[28:35].strip())
-        self.u11 = int(line[35:42].strip())
-        self.u22 = int(line[42:49].strip())
-        self.u01 = int(line[49:56].strip())
-        self.u02 = int(line[56:63].strip())
-        self.u12 = int(line[63:70].strip())
+        self.u00 = float(line[28:35].strip())
+        self.u11 = float(line[35:42].strip())
+        self.u22 = float(line[42:49].strip())
+        self.u01 = float(line[49:56].strip())
+        self.u02 = float(line[56:63].strip())
+        self.u12 = float(line[63:70].strip())
         self.seg_id = line[72:76].strip()
         self.element = line[76:78].strip()
         self.charge = line[78:80].strip()
@@ -360,12 +455,12 @@ class ChainTerminus(BaseRecord):
         self.res_seq = None
         self.ins_code = ""
 
-    def parse_line(self, line):
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         if line is None:
             line = ""
         try:
@@ -444,12 +539,32 @@ class HeterogenAtom(BaseRecord):
         self.element = ""
         self.charge = ""
 
-    def parse_line(self, line):
+    @staticmethod
+    def parse_cif(container) -> dict:
+        """Parse CIF container for information about this record.
+
+        :param :class:`pdbx.containers.DataContainer` container:  container to
+            parse
+        :returns:  dictionary of objects of this class indexed by model number
+        """
+        atoms = {}
+        df = cif_df(container.get_object("atom_site")).fillna("")
+        df = df[df["group_PDB"] == "HETATM"]
+        for _, row in df.iterrows():
+            atom = HeterogenAtom()
+            atom = atom_extract_cif(atom, row)
+            model_num = row["pdbx_PDB_model_num"]
+            model = atoms.get(model_num, [])
+            model.append(atom)
+            atoms[model_num] = model
+        return atoms
+
+    def parse_pdb(self, line):
         """Parse PDB-format line.
 
         :param str line:  line to parse
         """
-        super().parse_line(line)
+        super().parse_pdb(line)
         self.serial = int(line[6:11].strip())
         self.name = line[12:16].strip()
         self.alt_loc = line[16].strip()
