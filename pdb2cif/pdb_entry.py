@@ -102,9 +102,6 @@ class Entry:
         if obsolete.parse_cif(container):
             self._obsolete = obsolete
         self.parse_cif_title(container)
-        split = annotation.Split()
-        if split.parse_cif(container):
-            self._split = split
         caveat = annotation.Caveat()
         if caveat.parse_cif(container):
             self._caveat = caveat

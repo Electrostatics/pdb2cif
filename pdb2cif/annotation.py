@@ -188,9 +188,12 @@ class Compound(BaseRecord):
         value_added = False
         entity_df = cif_df(container.get_object("entity"))
         entity_name_com_df = cif_df(container.get_object("entity_name_com"))
-        df = entity_df.merge(
-            entity_name_com_df, how="left", left_on="id", right_on="entity_id"
-        )
+        if len(entity_name_com_df) > 0:
+            df = entity_df.merge(
+                entity_name_com_df, how="left", left_on="id", right_on="entity_id"
+            )
+        else:
+            df = entity_df
         for _, row in df.iterrows():
             value_added = True
             row = row.dropna()
@@ -1452,20 +1455,6 @@ class Split(BaseRecord):
         super().__init__()
         self.id_codes = []
 
-    def parse_cif(self, container) -> bool:
-        """Parse CIF container for information about this record.
-
-        :param :class:`pdbx.containers.DataContainer` container:  container to
-            parse
-        :returns:  True if useful information was extracted from container
-        """
-        cif_obj = container.get_object("pdbx_database_related")
-        if cif_obj is None:
-            return False
-        iattr = cif_obj.attribute_list.index("db_id")
-        self.id_codes += [row[iattr] for row in cif_obj.row_list]
-        return True
-
     def parse_pdb(self, line):
         """Parse input line.
 
@@ -1488,9 +1477,9 @@ class Split(BaseRecord):
             string = ""
             continuation = ichunk + 1
             if continuation > 1:
-                string += f"\nSITE    {continuation:>2}"
+                string += f"\SPLIT    {continuation:>2}"
             else:
-                string += "SITE      "
+                string += "SPLIT      "
             for code in chunk:
                 if code is not None:
                     string += f" {code:4}"

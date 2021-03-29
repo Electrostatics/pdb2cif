@@ -174,10 +174,10 @@ class DisulfideBond(BaseRecord):
         :returns:  list of objects of this class
         """
         bonds = []
-        df = cif_df(container.get_object("struct_conn"))
-        for _, row in df.iterrows():
+        df = cif_df(container.get_object("struct_conn")).fillna("")
+        for id_, row in df.iterrows():
             bond = DisulfideBond()
-            bond.ser_num = row["conn_type_id"]
+            bond.ser_num = id_ + 1
             bond.chain_id1 = row["ptnr1_auth_asym_id"]
             bond.seq_num1 = row["ptnr1_auth_seq_id"]
             bond.icode1 = row["pdbx_ptnr1_PDB_ins_code"]
@@ -186,7 +186,7 @@ class DisulfideBond(BaseRecord):
             bond.icode2 = row["pdbx_ptnr2_PDB_ins_code"]
             bond.sym1 = row["ptnr1_symmetry"]
             bond.sym2 = row["ptnr2_symmetry"]
-            bond.length = row["pdbx_dist_value"]
+            bond.length = float(row["pdbx_dist_value"])
             bonds.append(bond)
         return bonds
 
@@ -413,6 +413,7 @@ class Link(BaseRecord):
         self.ins_code2 = None
         self.sym1 = None
         self.sym2 = None
+        self.length = None
 
     @staticmethod
     def parse_cif(container) -> list:
@@ -423,24 +424,26 @@ class Link(BaseRecord):
         :returns:  list of objects of this class
         """
         links = []
-        df = cif_df(container.get_object("struct_conn"))
+        df = cif_df(container.get_object("struct_conn")).fillna("")
         for _, row in df.iterrows():
             link = Link()
-            link.name1 = row["ptnr1_label_atom_id"]
-            link.alt_loc1 = row["pdbx_ptnr1_label_alt_id"]
-            link.res_name1 = row["ptnr1_auth_comp_id"]
-            link.chain_id1 = row["ptnr1_auth_asym_id"]
-            link.res_seq1 = row["ptnr1_auth_seq_id"]
-            link.ins_code1 = row["pdbx_ptnr1_PDB_ins_code"]
-            link.name2 = row["ptnr2_label_atom_id"]
-            link.alt_loc2 = row["pdbx_ptnr2_label_alt_id"]
-            link.res_name2 = row["ptnr2_auth_comp_id"]
-            link.chain_id2 = row["ptnr2_auth_asym_id"]
-            link.res_seq2 = row["ptnr2_auth_seq_id"]
-            link.ins_code2 = row["pdbx_ptnr2_PDB_ins_code"]
-            link.sym1 = row["ptnr1_symmetry"]
-            link.sym2 = row["ptnr2_symmetry"]
-            links.append(link)
+            if row["conn_type_id"] not in ["disulf"]:
+                link.name1 = row["ptnr1_label_atom_id"]
+                link.alt_loc1 = row["pdbx_ptnr1_label_alt_id"]
+                link.res_name1 = row["ptnr1_auth_comp_id"]
+                link.chain_id1 = row["ptnr1_auth_asym_id"]
+                link.res_seq1 = row["ptnr1_auth_seq_id"]
+                link.ins_code1 = row["pdbx_ptnr1_PDB_ins_code"]
+                link.name2 = row["ptnr2_label_atom_id"]
+                link.alt_loc2 = row["pdbx_ptnr2_label_alt_id"]
+                link.res_name2 = row["ptnr2_auth_comp_id"]
+                link.chain_id2 = row["ptnr2_auth_asym_id"]
+                link.res_seq2 = row["ptnr2_auth_seq_id"]
+                link.ins_code2 = row["pdbx_ptnr2_PDB_ins_code"]
+                link.sym1 = row["ptnr1_symmetry"]
+                link.sym2 = row["ptnr2_symmetry"]
+                link.length = float(row["pdbx_dist_value"])
+                links.append(link)
         return links
 
     def parse_pdb(self, line):
@@ -625,22 +628,22 @@ class Sheet(BaseRecord):
             ""
         )
         sheet_df = cif_df(container.get_object("struct_sheet")).fillna("")
-        sheet_ids = sorted(
-            list(
-                set(hbond_df["sheet_id"])
-                | set(sheet_df["id"])
-                | set(order_df["sheet_id"])
-                | set(range_df["sheet_id"])
-            )
-        )
-        range_ids = sorted(
-            list(
-                set(hbond_df["range_id_2"])
-                | set(order_df["range_id_1"])
-                | set(order_df["range_id_2"])
-                | set(range_df["id"])
-            )
-        )
+        sheet_ids = set()
+        range_ids = set()
+        if len(hbond_df) > 0:
+            sheet_ids |= set(hbond_df["sheet_id"])
+            range_ids |= set(hbond_df["range_id_2"])
+        if len(sheet_df) > 0:
+            sheet_ids |= set(sheet_df["id"])
+        if len(order_df) > 0:
+            sheet_ids |= set(order_df["sheet_id"])
+            range_ids |= set(order_df["range_id_1"])
+            range_ids |= set(order_df["range_id_2"])
+        if len(range_df) > 0:
+            sheet_ids |= set(range_df["sheet_id"])
+            range_ids |= set(range_df["id"])
+        sheet_ids = sorted(list(sheet_ids))
+        range_ids = sorted(list(range_ids))
         for sheet_id in sheet_ids:
             num_strands = sheet_df[sheet_df["id"] == sheet_id][
                 "number_strands"

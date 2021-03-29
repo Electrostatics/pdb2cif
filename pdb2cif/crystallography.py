@@ -208,18 +208,19 @@ class NoncrystalTransform(BaseRecord):
         """
         transforms = []
         df = cif_df(container.get_object("struct_ncs_oper"))
-        for n in [1, 2, 3]:
-            transform = NoncrystalTransform(n)
-            transform.serial = int(df["id"])
-            transform.mn1 = float(df[f"matrix[{n}][1]"])
-            transform.mn2 = float(df[f"matrix[{n}][2]"])
-            transform.mn3 = float(df[f"matrix[{n}][3]"])
-            transform.vecn = float(df[f"vector[{n}]"])
-            if df["code"].values[0] == "given":
-                transform.i_given = 1
-            else:
-                raise NotImplementedError(df["code"])
-            transforms.append(transform)
+        if len(df) > 0:
+            for n in [1, 2, 3]:
+                transform = NoncrystalTransform(n)
+                transform.serial = int(df["id"])
+                transform.mn1 = float(df[f"matrix[{n}][1]"])
+                transform.mn2 = float(df[f"matrix[{n}][2]"])
+                transform.mn3 = float(df[f"matrix[{n}][3]"])
+                transform.vecn = float(df[f"vector[{n}]"])
+                if df["code"].values[0] == "given":
+                    transform.i_given = 1
+                else:
+                    raise NotImplementedError(df["code"])
+                transforms.append(transform)
         return transforms
 
     def parse_pdb(self, line):
