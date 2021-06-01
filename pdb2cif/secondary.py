@@ -185,7 +185,9 @@ class DisulfideBond(BaseRecord):
             bond.icode2 = row["pdbx_ptnr2_PDB_ins_code"]
             bond.sym1 = row["ptnr1_symmetry"]
             bond.sym2 = row["ptnr2_symmetry"]
-            bond.length = float(row["pdbx_dist_value"])
+            distance = row["pdbx_dist_value"]
+            if distance:
+                bond.length = float(distance)
             bonds.append(bond)
         return bonds
 
@@ -207,12 +209,15 @@ class DisulfideBond(BaseRecord):
         self.length = float(line[73:78])
 
     def __str__(self):
-        return (
+        str_ = (
             f"SSBOND {self.ser_num:3} CYS {self.chain_id1:1} {self.seq_num1:4}"
             f"{self.icode1:1}   CYS {self.chain_id2:1} {self.seq_num2:4}"
             f"{self.icode2:1}                         {self.sym1:6}"
-            f" {self.sym2:6}{self.length:4.2f}"
+            f" {self.sym2:6}"
         )
+        if self.length:
+            str_ += f"{self.length:4.2f}"
+        return str_
 
 
 class Helix(BaseRecord):
@@ -441,7 +446,9 @@ class Link(BaseRecord):
                 link.ins_code2 = row["pdbx_ptnr2_PDB_ins_code"]
                 link.sym1 = row["ptnr1_symmetry"]
                 link.sym2 = row["ptnr2_symmetry"]
-                link.length = float(row["pdbx_dist_value"])
+                distance = row["pdbx_dist_value"]
+                if distance:
+                    link.length = float(distance)
                 links.append(link)
         return links
 
@@ -498,8 +505,10 @@ class Link(BaseRecord):
         string += (
             f"{name2}{self.alt_loc2:1}{self.res_name2:>3} {self.chain_id2}"
             f"{self.res_seq2:4}{self.ins_code2:1}  {self.sym1:>6} "
-            f"{self.sym2:>6} {self.length:5}"
+            f"{self.sym2:>6}"
         )
+        if self.length:
+            string += f" {self.length:5}"
         return string
 
 

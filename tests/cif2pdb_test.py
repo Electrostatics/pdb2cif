@@ -18,4 +18,6 @@ def test_cif(pdb_id):
     entry = Entry()
     entry.parse_cif_file(cif_file)
     _LOGGER.debug(str(entry))
-    raise NotImplementedError()
+    if pdb_id not in ["1AFS", "1E7G"]:
+        err = f"Haven't checked results for {pdb_id} yet."
+        raise NotImplementedError(err)
