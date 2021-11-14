@@ -21,7 +21,23 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     package_data={"": ["tests/data/*"]},
     install_requires=["requests", "pandas", "mmcif_pdbx"],
-    tests_require=["pytest"],
+    extras_require={
+        "dev": ["check-manifest"],
+        "test": [
+            "black",
+            "coverage",
+            "flake8",
+            "pandas >= 1.0",
+            "pytest",
+            "testfixtures",
+        ],
+    },
+    tests_require=[
+        "pandas >= 1.0",
+        "pytest",
+        "testfixtures",
+    ],
+    test_suite="tests",
     # entry_points={"console_scripts": ["mvalue=osmolytes.main:console"]},
     keywords="science chemistry biophysics biochemistry",
     classifiers=[
